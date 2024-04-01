@@ -6,8 +6,8 @@ const initialState = {
   currentTime: new Date().valueOf(),
   paused: false,
   timeScale: 1,
-  minTimeScale: 0.1,
-  maxTimeScale: 100,
+  minTimeScale: -604800,
+  maxTimeScale: 604800,
 };
 
 export const timeSlice = createSlice({
@@ -32,6 +32,11 @@ export const timeSlice = createSlice({
         state.timeScale = state.maxTimeScale;
       } else {
         state.timeScale = action.payload.timeScale;
+      }
+      if (state.timeScale === 0) {
+        state.paused = true;
+      } else if (state.paused) {
+        state.paused = false;
       }
     },
   },

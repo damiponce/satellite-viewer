@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ReactThreeFiber,
-  PrimitiveProps,
   extend,
   MeshProps,
   useFrame,
@@ -12,9 +11,6 @@ import {
   LineSegmentsGeometry,
 } from 'three-stdlib';
 import * as THREE from 'three';
-import { raycast } from 'meshline';
-
-const SEGMENTS = 500;
 
 extend({ LineSegments2, LineMaterial, LineSegmentsGeometry });
 declare global {
@@ -40,37 +36,38 @@ function Orbit({
   enabled,
   linewidth,
   curve,
-  color,
+  color = 0xffffff,
   ...rest
 }: {
   enabled: boolean;
   linewidth: number;
   curve: Float32Array | number[];
-  color?: string | number;
+  color?: number;
 } & MeshProps) {
-  if (enabled === false) return null;
+  if (enabled === false || curve === null) return null;
   const geomRef = React.useRef<LineSegmentsGeometry>(null);
   const matRef = React.useRef<LineMaterial>(null);
 
-  useFrame(() => {
-    const _curve = new THREE.EllipseCurve(
-      5,
-      0,
-      18,
-      15,
-      0,
-      2 * Math.PI,
-      false,
-      0,
-    );
-    var points = _curve
-      .getPoints(SEGMENTS)
-      .reduce<number[]>((acc, { x, y }) => [...acc, x, y, 0, x, y, 0], []);
-    points.push(...points.splice(0, 3));
+  const rgb = {
+    r: ((color & 0xff0000) >>> 16) / 255,
+    g: ((color & 0x00ff00) >>> 8) / 255,
+    b: (color & 0x0000ff) / 255,
+  };
+  // console.log(color, rgb);
 
+  useFrame(() => {
     if (Array.isArray(curve)) {
       curve.push(...curve.splice(0, 3));
-      curve.splice(-1, 1);
+      curve.splice(-3, 3);
+      curve.push(
+        ...[
+          curve[curve.length - 3],
+          curve[curve.length - 2],
+          curve[curve.length - 1],
+        ],
+      );
+      // console.log(curve);
+      // debugger;
       curve = new Float32Array(curve);
     }
     const positions = curve;
@@ -79,10 +76,10 @@ function Orbit({
     const colors = new Float32Array((positions.length / 3) * 4);
     for (let i = 0; i <= positions.length / 3; i++) {
       let c = 1 - (3 * i) / (positions.length * 1.0);
-      colors[i * 4] = 1;
-      colors[i * 4 + 1] = 1;
-      colors[i * 4 + 2] = 1;
-      colors[i * 4 + 3] = 1;
+      colors[i * 4] = rgb.r;
+      colors[i * 4 + 1] = rgb.g;
+      colors[i * 4 + 2] = rgb.b;
+      colors[i * 4 + 3] = 0.7;
     }
 
     geomRef.current?.setPositions(positions);
@@ -92,19 +89,23 @@ function Orbit({
 
   return (
     //  @ts-ignore
-
     <lineSegments2 {...rest}>
       <lineSegmentsGeometry attach='geometry' ref={geomRef} />
       <lineMaterial
         attach='material'
-        color={color}
         ref={matRef}
-        linewidth={linewidth}
-        worldUnits={true}
+        linewidth={0.0025 * linewidth}
+        vertexColors={true}
+        worldUnits={false}
         transparent={true}
         alphaToCoverage={true}
-        blendAlpha={THREE.AdditiveBlending}
-        vertexColors={false}
+        blending={THREE.CustomBlending}
+        blendEquation={THREE.AddEquation}
+        blendSrc={THREE.SrcAlphaFactor}
+        blendSrcAlpha={THREE.OneFactor}
+        blendDst={THREE.ZeroFactor}
+        depthFunc={THREE.LessEqualDepth}
+        depthWrite={true}
       />
     </lineSegments2>
   );

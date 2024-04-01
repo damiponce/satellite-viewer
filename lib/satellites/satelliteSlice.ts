@@ -57,6 +57,23 @@ const initialState: SatellitesType = [
       groundTrack: false,
     },
   },
+  {
+    noradId: 41866,
+    name: 'GOES 16',
+    tle1: `1 41866U 16071A   24076.51490392 -.00000260  00000+0  00000+0 0  9999`,
+    tle2: `2 41866   0.0638 278.8245 0000825  89.0321 276.8622  1.00270838 26851`,
+    fetchedAt: moment().valueOf(),
+    color: 0xccccff,
+    selected: false,
+    visible: true,
+    elements: {
+      point: true,
+      label: true,
+      orbitEci: false,
+      orbitEcef: false,
+      groundTrack: false,
+    },
+  },
 ];
 
 export const satellitesSlice = createSlice({

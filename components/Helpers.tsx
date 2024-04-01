@@ -32,7 +32,7 @@ export default function Helpers() {
           fadeDistance={200}
         />
       )}
-      {/* <Stats /> */}
+      {/* <Stats className='!left-[calc(50%_-_40px)]' /> */}
     </>
   );
 }

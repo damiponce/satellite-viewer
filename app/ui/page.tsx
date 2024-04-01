@@ -4,7 +4,7 @@ import React from 'react';
 import { store } from '@/lib/redux/store';
 import { Provider } from 'react-redux';
 
-import Overlay from '@/components/Overlay';
+import Overlay from '@/components/overlay/Overlay';
 import Timekeeper from '@/lib/Timekeeper';
 
 import hypertimer from 'hypertimer';

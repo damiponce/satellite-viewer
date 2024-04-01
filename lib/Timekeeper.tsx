@@ -4,7 +4,7 @@ import { RootState } from './redux/store';
 import hypertimer from 'hypertimer';
 
 var timer = hypertimer({
-  rate: 100,
+  rate: 1,
   time: Date.now(),
   paced: true,
 });
@@ -17,6 +17,7 @@ export default function Timekeeper({
   deltaMs: number;
   set?: (timer: any) => void;
 }) {
+  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
 
@@ -31,6 +32,8 @@ export default function Timekeeper({
   );
 
   React.useEffect(() => {
+    // console.info('Timekeeper useEffect paused', timeParams.paused);
+    forceUpdate();
     if (timeParams.paused) {
       if (timer.running) {
         timer.clearInterval(setterIter);
@@ -42,10 +45,14 @@ export default function Timekeeper({
         timer.continue();
       }
     }
-  }, [timeParams.paused, setterIter, setterIterFunc]);
+
+    //@ts-nocheck
+  }, [timeParams.paused]);
 
   React.useEffect(() => {
-    timer.config.rate = timeParams.timeScale;
+    // console.info('Timekeeper useEffect scale', timeParams.timeScale);
+    forceUpdate();
+    timer.config({ rate: timeParams.timeScale });
   }, [timeParams.timeScale]);
 
   return <></>;

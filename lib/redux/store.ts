@@ -2,10 +2,12 @@ import { configureStore } from '@reduxjs/toolkit';
 import settingsReducer from '@/lib/settings/settingsSlice';
 import satelliteReducer from '@/lib/satellites/satelliteSlice';
 import timeReducer from '@/lib/time/timeSlice';
+import selectionsReducer from '../selections/selectionsSlice';
 
 export const store = configureStore({
   reducer: {
     settings: settingsReducer,
+    selections: selectionsReducer,
     satellites: satelliteReducer,
     time: timeReducer,
   },

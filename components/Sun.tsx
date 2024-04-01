@@ -1,8 +1,17 @@
-import React from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { Suspense } from 'react';
+import { useFrame, useLoader } from '@react-three/fiber';
 
 import * as satellite from 'satellite.js';
 import * as THREE from 'three';
+import { Effects } from '@react-three/drei';
+import {
+  Bloom,
+  ChromaticAberration,
+  EffectComposer,
+  GodRays,
+  LensFlare,
+} from '@react-three/postprocessing';
+
 const SunCalc = require('suncalc');
 
 export default function Sun({ timer }: { timer: any }) {
@@ -18,11 +27,21 @@ export default function Sun({ timer }: { timer: any }) {
     setSunCartesian(
       new THREE.Vector3(sun_cartesian.x, sun_cartesian.y, sun_cartesian.z),
     );
+
+    // console.log('SUN', sun_geodetic, sun_cartesian);
   });
 
   return (
     <>
       <directionalLight color='white' position={sunCartesian} intensity={5} />
+      {/* <mesh position={sunCartesian.normalize().multiplyScalar(5000)}>
+        <sphereGeometry args={[10, 8, 8]} />
+        <meshBasicMaterial color='yellow' />
+      </mesh> */}
+      {/* 
+      <EffectComposer>
+        <LensFlare />
+      </EffectComposer> */}
     </>
   );
 }
