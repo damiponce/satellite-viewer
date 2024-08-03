@@ -13,17 +13,10 @@ import Timekeeper from '@/lib/Timekeeper';
 import WelcomeDialog from '@/components/AlertDIalog';
 import Loading from '@/components/overlay/Loading';
 
-import dynamic from 'next/dynamic';
 import { Canvas } from '@react-three/fiber';
-const DynamicCanvas = dynamic(
-  () => import('@react-three/fiber').then((mod) => mod.Canvas),
-  {
-    ssr: false,
-  },
-);
 
 export default function App() {
-  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+  // const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
 
   const timer = React.useRef(
     hypertimer({
@@ -42,12 +35,11 @@ export default function App() {
       <div id='canvas-container' className='overflow-hidden'>
         <Provider store={store}>
           <Suspense fallback={<Loading />}>
-            {/* <Loading /> */}
             {process.env.NODE_ENV !== 'development' && <WelcomeDialog />}
-            <Canvas>
-              <SatelliteScene timer={timer.current} />
+            <Canvas dpr={[1, 2]}>
+              <SatelliteScene timer={timer} />
             </Canvas>
-            <Overlay timer={timer.current} />
+            <Overlay timer={timer} />
             <Timekeeper
               deltaMs={10}
               set={(t) => {

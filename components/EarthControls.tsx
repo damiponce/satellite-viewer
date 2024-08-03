@@ -7,10 +7,14 @@ import { EARTH_MEAN_RADIUS } from '@/utils/constants';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { parseFloatAuto } from '@/lib/utils';
+import {
+  OrbitControls as _OrbitControls,
+  TrackballControls as _TrackballControls,
+} from 'three-stdlib';
 
 export default function EarthControls() {
-  const orbitRef = React.useRef<any>(null);
-  const trackballRef = React.useRef<any>(null);
+  const orbitRef = React.useRef<_OrbitControls>(null!);
+  const arcballRef = React.useRef<_ArcballControls>(null!);
 
   const selections = useSelector((state: RootState) => state.selections);
 

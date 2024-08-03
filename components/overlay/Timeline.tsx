@@ -37,12 +37,24 @@ export default function Timeline({
   const cursorStartPos = 1 / 3;
   const cursorPos = React.useRef(cursorStartPos);
   const [cursorHeld, setCursorHeld] = React.useState(false);
+  const lastPointerPos = React.useRef<
+    | React.MouseEvent<SVGSVGElement>
+    | React.TouchEvent<SVGSVGElement>
+    | MouseEvent
+    | TouchEvent
+  >();
 
   const timelineStart = React.useRef(
-    moment(timer.now()).subtract(tlDelta.current * cursorStartPos, 'seconds'),
+    moment(timer.current.now()).subtract(
+      tlDelta.current * cursorStartPos,
+      'seconds',
+    ),
   );
   const timelineEnd = React.useRef(
-    moment(timer.now()).add(tlDelta.current * (1 - cursorStartPos), 'seconds'),
+    moment(timer.current.now()).add(
+      tlDelta.current * (1 - cursorStartPos),
+      'seconds',
+    ),
   );
 
   const smallTicks = React.useRef<number[]>([]);
@@ -58,7 +70,7 @@ export default function Timeline({
     md: 1,
   });
 
-  const following = React.useRef(true);
+  const following = React.useRef(false);
 
   function ticksCalculations() {
     let _largeTicks: number[] = [];
@@ -99,11 +111,11 @@ export default function Timeline({
   }
 
   function trackingTimeline() {
-    timelineStart.current = moment(timer.now()).add(
+    timelineStart.current = moment(timer.current.now()).add(
       -tlDelta.current * cursorStartPos,
       'seconds',
     );
-    timelineEnd.current = moment(timer.now()).add(
+    timelineEnd.current = moment(timer.current.now()).add(
       tlDelta.current * (1 - cursorStartPos),
       'seconds',
     );
@@ -112,13 +124,27 @@ export default function Timeline({
   }
 
   function paginatedTimeline() {
-    if (moment(timer.now()) > timelineEnd.current) {
+    const _timeNow = moment(timer.current.now());
+    if (_timeNow > timelineEnd.current) {
+      const nDeltas = Math.ceil(
+        _timeNow.diff(timelineEnd.current, 'seconds') / tlDelta.current,
+      );
       timelineStart.current = timelineStart.current
         .clone()
-        .add(tlDelta.current, 'seconds');
+        .add(nDeltas * tlDelta.current, 'seconds');
       timelineEnd.current = timelineEnd.current
         .clone()
-        .add(tlDelta.current, 'seconds');
+        .add(nDeltas * tlDelta.current, 'seconds');
+    } else if (_timeNow < timelineStart.current) {
+      const nDeltas = Math.ceil(
+        timelineStart.current.diff(_timeNow, 'seconds') / tlDelta.current,
+      );
+      timelineStart.current = timelineStart.current
+        .clone()
+        .subtract(nDeltas * tlDelta.current, 'seconds');
+      timelineEnd.current = timelineEnd.current
+        .clone()
+        .subtract(nDeltas * tlDelta.current, 'seconds');
     }
 
     cursorPos.current = lerp.s.pt(
@@ -126,7 +152,7 @@ export default function Timeline({
       timelineEnd.current,
       0,
       1,
-      moment(timer.now()),
+      _timeNow,
     );
 
     ticksCalculations();
@@ -134,13 +160,21 @@ export default function Timeline({
 
   // useAnimationFrame(() => {
   useAnimationFrame(() => {
-    // forceUpdate();
+    forceUpdate();
     intvl.current = closestInterval(tlDelta.current);
+
+    // console.log(smallTicks.current);
+    // console.log(mediumTicks.current);
+    // console.log(largeTicks.current);
 
     if (following.current) {
       trackingTimeline();
     } else {
       paginatedTimeline();
+    }
+
+    if (lastPointerPos.current) {
+      handleCursorHeld(lastPointerPos.current);
     }
   });
 
@@ -154,6 +188,8 @@ export default function Timeline({
     e.preventDefault();
     e = e as MouseEvent | TouchEvent;
     if ((e as MouseEvent).buttons === 1 || e instanceof TouchEvent) {
+      if (!tlContainerRef.current) return;
+
       var clientX: number;
       if (e instanceof MouseEvent) {
         clientX = e.clientX;
@@ -161,9 +197,9 @@ export default function Timeline({
         clientX = e.touches[0].clientX;
       }
 
-      const rect = tlContainerRef.current!.getBoundingClientRect(); //! !//
+      const rect = tlContainerRef.current.getBoundingClientRect(); //! !//
       const offsetX = clientX - rect.left;
-      var mousePos = offsetX / rect.width;
+      var pointerRelPos = offsetX / rect.width;
 
       const timeAtMousePos = moment(
         lerp.s.pt(
@@ -171,70 +207,68 @@ export default function Timeline({
           1,
           timelineStart.current.valueOf(),
           timelineEnd.current.valueOf(),
-          mousePos,
+          pointerRelPos,
         ),
       );
 
       // if (mousePos < 0 || mousePos > 1) return;
 
       const a = 1;
-      if (mousePos < 0.05) {
-        if (mousePos < 0.005) mousePos = 0.005;
+      if (pointerRelPos < 0.05) {
+        if (pointerRelPos < 0.005) pointerRelPos = 0.005;
         timelineStart.current = timelineStart.current
           .clone()
-          .subtract((0.05 - mousePos) * tlDelta.current * a, 'seconds');
+          .subtract((0.05 - pointerRelPos) * tlDelta.current * a, 'seconds');
         timelineEnd.current = timelineEnd.current
           .clone()
-          .subtract((0.05 - mousePos) * tlDelta.current * a, 'seconds');
-      } else if (mousePos > 0.95) {
-        if (mousePos > 0.995) mousePos = 0.995;
+          .subtract((0.05 - pointerRelPos) * tlDelta.current * a, 'seconds');
+      } else if (pointerRelPos > 0.95) {
+        if (pointerRelPos > 0.995) pointerRelPos = 0.995;
         timelineStart.current = timelineStart.current
           .clone()
-          .add((mousePos - 0.95) * tlDelta.current * a, 'seconds');
+          .add((pointerRelPos - 0.95) * tlDelta.current * a, 'seconds');
         timelineEnd.current = timelineEnd.current
           .clone()
-          .add((mousePos - 0.95) * tlDelta.current * a, 'seconds');
+          .add((pointerRelPos - 0.95) * tlDelta.current * a, 'seconds');
       }
-      timer.config({ time: timeAtMousePos.valueOf() });
+      timer.current.config({ time: timeAtMousePos.valueOf() });
     }
   }
 
   function handleCursorDown(
     e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>,
   ) {
+    console.clear();
+    console.log('handleCursorDown');
     following.current = false;
     setCursorHeld(true);
     dispatch(setPaused({ paused: true }));
 
     const abortSignal = new AbortController();
     document.addEventListener(
-      'mouseup',
+      'pointerup',
       () => {
+        console.log('pointerup');
         abortSignal.abort();
         setCursorHeld(false);
         dispatch(setPaused({ paused: false }));
       },
       {
+        signal: abortSignal.signal,
         once: true,
       },
     );
+
     document.addEventListener(
-      'touchend',
-      () => {
-        abortSignal.abort();
-        setCursorHeld(false);
-        dispatch(setPaused({ paused: false }));
+      'pointermove',
+      (e) => {
+        console.log('pointermove');
+        lastPointerPos.current = e;
       },
       {
-        once: true,
+        signal: abortSignal.signal,
       },
     );
-    document.addEventListener('mousemove', handleCursorHeld, {
-      signal: abortSignal.signal,
-    });
-    document.addEventListener('touchmove', handleCursorHeld, {
-      signal: abortSignal.signal,
-    });
   }
 
   return (
@@ -244,7 +278,7 @@ export default function Timeline({
       className={cn(
         className,
         'w-full h-8 border-red-500/30-border-t-[1px] pointer-events-auto self-end relative',
-        'border-t-2 bg-background/50 backdrop-blur-lg',
+        'border-t-2 bg-background/50 backdrop-blur-lg overflow-hidden',
       )}
       onWheel={(e) => {
         const exp = 1.15;
@@ -282,7 +316,7 @@ export default function Timeline({
       {false && (
         <div className='absolute left-2 bottom-9 text-sm font-mono flex flex-row gap-10 items-end '>
           <p>
-            now: {moment(timer.now()).format()}
+            now: {moment(timer.current.now()).format()}
             <br />
             sta: {timelineStart.current.format()}
             <br />
@@ -293,9 +327,9 @@ export default function Timeline({
               ms(real): {moment().milliseconds()}
               <br />
               diff: -
-              {/* diff: {moment(timer.now()).diff(new Date(), 'milliseconds')} */}
+              {/* diff: {moment(timer.current.now()).diff(new Date(), 'milliseconds')} */}
               <br />
-              ms(hypr): {moment(timer.now()).milliseconds()}
+              ms(hypr): {moment(timer.current.now()).milliseconds()}
             </p>
           )}
           <p>
@@ -410,7 +444,7 @@ export default function Timeline({
             fill='white'
             className='select-none'
           >
-            {d.format('ll HH:mm:ss.SSS')}
+            {d.utc().format('ll HH:mm:ss.SSS')}
           </text>
         ))}
       </svg>
