@@ -59,7 +59,10 @@ export default function Satellite({
     )!, //!
   );
 
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
+
   useFrame(() => {
+    forceUpdate();
     satData.current = satelliteCalc(
       timer,
       satRec,

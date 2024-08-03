@@ -16,7 +16,7 @@ import Loading from '@/components/overlay/Loading';
 import { Canvas } from '@react-three/fiber';
 
 export default function App() {
-  // const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+  // const [, forceUpdate] = React.useReducer((x) => -x, 0);
 
   const timer = React.useRef(
     hypertimer({

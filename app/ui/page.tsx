@@ -10,7 +10,7 @@ import Timekeeper from '@/lib/Timekeeper';
 import hypertimer from 'hypertimer';
 
 export default function Page() {
-  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
 
   const timer = React.useRef(
     hypertimer({
