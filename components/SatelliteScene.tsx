@@ -10,8 +10,6 @@ import Helpers from './Helpers';
 import Satellite from './Satellite';
 import Sun from './Sun';
 import EarthControls from './EarthControls';
-import ArcballOrbitControls from './ArcballOrbitControls';
-import { EARTH_MEAN_RADIUS } from '@/utils/constants';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const textures = useTexture({
