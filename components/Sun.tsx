@@ -18,7 +18,7 @@ export default function Sun({ timer }: { timer: any }) {
   const [sunCartesian, setSunCartesian] = React.useState(new THREE.Vector3());
 
   useFrame(() => {
-    const sun_geodetic = SunCalc.getPosition(timer.now(), 89.8, 0);
+    const sun_geodetic = SunCalc.getPosition(timer.current.now(), 89.8, 0);
     const sun_cartesian = satellite.geodeticToEcf({
       longitude: -sun_geodetic.azimuth,
       latitude: sun_geodetic.altitude,

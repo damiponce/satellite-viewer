@@ -9,6 +9,8 @@ import { Slider } from '../ui/slider';
 import moment from 'moment';
 import { Button } from '../ui/button';
 import { FastForward, Pause, Play, TimerReset } from 'lucide-react';
+import { useFrame } from '@react-three/fiber';
+import { useAnimationFrame } from './TimelineFunctions';
 
 export default function TimeHandler({
   className,
@@ -19,6 +21,11 @@ export default function TimeHandler({
 }) {
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
+
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
+  useAnimationFrame(() => {
+    forceUpdate();
+  });
 
   return (
     <div
@@ -33,24 +40,17 @@ export default function TimeHandler({
           defaultValue={[1]}
           min={1}
           max={100}
+          value={[timeParams.sliderTimeScale]}
           onValueChange={(value) => {
-            let scale = 1;
-            if (value[0] > 1)
-              // scale = Math.log(value[0] - 1) / Math.log(1.143931)
-              scale = Math.pow(1.143931, value[0] - 1);
-            else if (value[0] < 1) scale = Math.pow(value[0], 0.134);
-
-            if (scale >= 15) scale = Math.round(scale);
-
-            dispatch(setTimeScale({ timeScale: scale }));
+            dispatch(setTimeScale({ timeScale: value[0], isFromSlider: true }));
           }}
         />
       </div>
-      <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium '>
+      <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
         <h2>x{timeParams.timeScale.toFixed(0)}</h2>
-        <h2>{moment(timer.now()).utc().format('ll')}</h2>
+        <h2>{moment(timer.current.now()).utc().format('ll')}</h2>
         <h2 className='tabular-nums'>
-          {moment(timer.now()).utc().format('HH:mm:ss')} UTC
+          {moment(timer.current.now()).utc().format('HH:mm:ss')} UTC
         </h2>
       </div>
       <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
@@ -58,7 +58,8 @@ export default function TimeHandler({
           variant='outline'
           className='aspect-square p-0'
           onClick={() => {
-            timer.config({ time: Date.now() });
+            timer.current.config({ time: Date.now() });
+            dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
           }}
         >
           <TimerReset className='h-5 w-5' strokeWidth={1.5} />

@@ -1,29 +1,17 @@
-import React, { Suspense, use } from 'react';
-import * as THREE from 'three';
-import dynamic from 'next/dynamic';
+import React from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 
-import {
-  Bvh,
-  Effects,
-  OrbitControls,
-  PerspectiveCamera,
-  StatsGl,
-  useTexture,
-} from '@react-three/drei';
+import { Bvh, PerspectiveCamera, StatsGl, useTexture } from '@react-three/drei';
 
 import Earth from './Earth';
 import Helpers from './Helpers';
 import Satellite from './Satellite';
 import Sun from './Sun';
-import { useFrame, useThree } from '@react-three/fiber';
 import EarthControls from './EarthControls';
-import Loading from './overlay/Loading';
-import { EffectComposer, LensFlare } from '@react-three/postprocessing';
 
-export default function SatelliteCanvas({ timer }: { timer: any }) {
+export default function SatelliteScene({ timer }: { timer: any }) {
   const textures = useTexture({
     albedoMap: '/earth/Albedo.jpg',
     bumpMap: '/earth/Bump.jpg',
@@ -32,18 +20,17 @@ export default function SatelliteCanvas({ timer }: { timer: any }) {
     // envMap: '/earth/starmap_2020_16k.jpg',
   });
 
-  const settings = useSelector((state: RootState) => state.settings);
   const satellites = useSelector((state: RootState) => state.satellites);
-  const dispatch = useDispatch();
 
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
   // <DynamicCanvas>
+
   return (
     <Bvh>
       <PerspectiveCamera
-        makeDefault
+        makeDefault={true}
         position={[40, 40, 40]}
         fov={30}
         aspect={
@@ -59,6 +46,7 @@ export default function SatelliteCanvas({ timer }: { timer: any }) {
       <EarthControls />
       <group rotation={[Math.PI / 2, 0, 0]}>
         <Earth textures={textures} />
+        <Helpers />
       </group>
       {satellites.map((satellite) => (
         <Satellite
@@ -67,7 +55,6 @@ export default function SatelliteCanvas({ timer }: { timer: any }) {
           timer={timer}
         />
       ))}
-      <Helpers />
       {false && <StatsGl />}
     </Bvh>
   );

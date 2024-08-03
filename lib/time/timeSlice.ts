@@ -6,6 +6,7 @@ const initialState = {
   currentTime: new Date().valueOf(),
   paused: false,
   timeScale: 1,
+  sliderTimeScale: 1,
   minTimeScale: -604800,
   maxTimeScale: 604800,
 };
@@ -25,13 +26,29 @@ export const timeSlice = createSlice({
     setPaused: (state, action: PayloadAction<{ paused: boolean }>) => {
       state.paused = action.payload.paused;
     },
-    setTimeScale: (state, action: PayloadAction<{ timeScale: number }>) => {
-      if (action.payload.timeScale < state.minTimeScale) {
+    setTimeScale: (
+      state,
+      action: PayloadAction<{ timeScale: number; isFromSlider?: boolean }>,
+    ) => {
+      let scale = 1;
+      if (action.payload.isFromSlider || true) {
+        state.sliderTimeScale = action.payload.timeScale;
+        if (action.payload.timeScale > 1)
+          // scale = Math.log(action.payload.timeScale - 1) / Math.log(1.143931)
+          scale = Math.pow(1.143931, action.payload.timeScale - 1);
+        else if (action.payload.timeScale < 1)
+          scale = Math.pow(action.payload.timeScale, 0.134);
+
+        if (scale >= 15) scale = Math.round(scale);
+      } else {
+        scale = action.payload.timeScale;
+      }
+      if (scale < state.minTimeScale) {
         state.timeScale = state.minTimeScale;
-      } else if (action.payload.timeScale > state.maxTimeScale) {
+      } else if (scale > state.maxTimeScale) {
         state.timeScale = state.maxTimeScale;
       } else {
-        state.timeScale = action.payload.timeScale;
+        state.timeScale = scale;
       }
       if (state.timeScale === 0) {
         state.paused = true;

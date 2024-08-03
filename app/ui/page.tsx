@@ -20,13 +20,9 @@ export default function Page() {
     }),
   );
 
-  // React.useEffect(() => {
-  //   console.log('ui page ', timer.current, timer.current.getTime());
-  // }, [timer.current]);
-
   return (
     <Provider store={store}>
-      <Overlay timer={timer.current} />
+      <Overlay timer={timer} />
       <Timekeeper
         deltaMs={10}
         set={(t) => {

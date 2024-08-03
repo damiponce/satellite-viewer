@@ -1,16 +1,18 @@
-import { OrbitControls, TrackballControls } from '@react-three/drei';
-import { useFrame, useThree } from '@react-three/fiber';
-import React, { Suspense } from 'react';
+import { OrbitControls } from '@react-three/drei';
+import React from 'react';
 import * as THREE from 'three';
-import Loading from './overlay/Loading';
 import { EARTH_MEAN_RADIUS } from '@/utils/constants';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { parseFloatAuto } from '@/lib/utils';
+import {
+  OrbitControls as _OrbitControls,
+  TrackballControls as _TrackballControls,
+} from 'three-stdlib';
 
 export default function EarthControls() {
-  const orbitRef = React.useRef<any>(null);
-  const trackballRef = React.useRef<any>(null);
+  const orbitRef = React.useRef<_OrbitControls>(null!);
+  const trackballRef = React.useRef<_TrackballControls>(null!);
 
   const selections = useSelector((state: RootState) => state.selections);
 
@@ -34,7 +36,7 @@ export default function EarthControls() {
         />
       ) : (
         <OrbitControls
-          ref={trackballRef}
+          ref={orbitRef}
           enablePan={false} // disable when trackball
           minDistance={EARTH_MEAN_RADIUS * 0.2}
           maxDistance={EARTH_MEAN_RADIUS * 50}

@@ -162,10 +162,11 @@ export default function Overlay({ timer }: { timer: any }) {
       <TooltipProvider>
         {isTogglesVisible && (
           <>
-            {/* <div className='absolute bottom-0 w-full flex flex-row pointer-events-none *:pointer-events-auto'>
+            <div className='absolute bottom-0 w-full flex flex-row pointer-events-none *:pointer-events-auto'>
               <TimeHandler timer={timer} />
               <Timeline timer={timer} />
-            </div> */}
+            </div>
+
             <div className='flex flex-col absolute top-2 left-2 pointer-events-auto'>
               <ToggleGroup
                 className='_mb-2 justify-start'

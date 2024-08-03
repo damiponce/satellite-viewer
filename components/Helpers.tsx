@@ -12,7 +12,7 @@ export default function Helpers() {
       {settings.view.gizmo && (
         <GizmoHelper
           alignment='bottom-right' // widget alignment within scene
-          margin={[80, 80]} // widget margins (X, Y)
+          margin={[60, 92]} // widget margins (X, Y)
         >
           <GizmoViewport
             axisColors={['red', 'green', 'blue']}
@@ -23,7 +23,6 @@ export default function Helpers() {
       {/* @ts-ignore */}
       {settings.view.grid && (
         <Grid
-          rotation={[Math.PI / 2, 0, 0]}
           args={[100, 100]}
           sectionColor={0x777777}
           cellThickness={0}

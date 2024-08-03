@@ -64,9 +64,12 @@ export function closestInterval(tlDelta: number): {
 
   let i = 0;
   let closest = largeTickIntervals[0];
-  while (tlDelta / closest.seconds > maxIntervals) {
-    i++;
+  while (
+    tlDelta / closest.seconds > maxIntervals &&
+    i < largeTickIntervals.length
+  ) {
     closest = largeTickIntervals[i];
+    i++;
   }
 
   return closest;
