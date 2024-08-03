@@ -55,6 +55,11 @@ export default function Satellite({
         focused: selections.focused.id === data.noradId,
         info: selections.info.id === data.noradId,
       },
+      {
+        eci: settings['elements']['orbitEci'],
+        ecef: settings['elements']['orbitEcef'],
+        ground: settings['elements']['groundTrack'],
+      },
       dispatch,
     )!, //!
   );
@@ -70,6 +75,11 @@ export default function Satellite({
       {
         focused: selections.focused.id === data.noradId,
         info: selections.info.id === data.noradId,
+      },
+      {
+        eci: settings['elements']['orbitEci'],
+        ecef: settings['elements']['orbitEcef'],
+        ground: settings['elements']['groundTrack'],
       },
       dispatch,
     )!;
@@ -203,6 +213,7 @@ function satelliteCalc(
   satRec: satellite.SatRec,
   curveMinutes: number,
   { focused, info }: { focused: boolean; info: boolean },
+  orbits: { eci: boolean; ecef: boolean; ground: boolean },
   dispatch: Dispatch,
 ): SatelliteCalcType | null {
   const SCALE = 1 / 1000;
@@ -279,67 +290,81 @@ function satelliteCalc(
   }
 
   // ============ // Orbits // ============ //
-  const SEGMENT_MULTIPLIER = 1;
-  const revPerDay = (satRec.no * 1440) / (2 * Math.PI);
-  let segments = Math.round((24 * 60) / revPerDay) * SEGMENT_MULTIPLIER; //! more than 1 is very laggy
+  if (orbits.ecef || orbits.eci || orbits.ground) {
+    const SEGMENT_MULTIPLIER = 1;
+    const revPerDay = (satRec.no * 1440) / (2 * Math.PI);
+    let segments = Math.round((24 * 60) / revPerDay) * SEGMENT_MULTIPLIER; //! more than 1 is very laggy
 
-  let orbitEcefCurve: number[] = [];
-  let orbitEciCurve: number[] = [];
-  let groundTrackCurve: number[] = [];
+    let iterDate: Date;
+    let iterPosVel: satellite.PositionAndVelocity;
+    let iterGmst: satellite.GMSTime;
 
-  for (let i = 0; i < segments; i++) {
-    const iterDate = new Date(timer.current.now());
-    // .add(i * 60, 'seconds')
-    // .toDate(); // !!!!!!!
-    iterDate.setMinutes(iterDate.getMinutes() + i / SEGMENT_MULTIPLIER);
-    const iterPosVel = satellite.propagate(satRec, iterDate);
-    const iterGmst = satellite.gstime(iterDate);
-    if (typeof iterPosVel.position === 'boolean') return null;
+    let iterPositionEci: satellite.EcfVec3<number>;
+    let iterPositionEcef: satellite.EcfVec3<number>;
 
-    // TODO: Shift ECI orbit to match middle with satellite position
-    const iterPositionEci = satellite.eciToEcf(iterPosVel.position, gmst);
-    orbitEciCurve.push(iterPositionEci.x * SCALE);
-    orbitEciCurve.push(iterPositionEci.y * SCALE);
-    orbitEciCurve.push(iterPositionEci.z * SCALE);
-    let dupes = orbitEciCurve.slice(-3);
-    orbitEciCurve.push(...dupes);
+    let dupes: number[] = [];
 
-    const iterPositionEcef = satellite.eciToEcf(iterPosVel.position, iterGmst);
-    orbitEcefCurve.push(iterPositionEcef.x * SCALE);
-    orbitEcefCurve.push(iterPositionEcef.y * SCALE);
-    orbitEcefCurve.push(iterPositionEcef.z * SCALE);
-    dupes = orbitEcefCurve.slice(-3);
-    orbitEcefCurve.push(...dupes);
+    let orbitEcefCurve: number[] = [];
+    let orbitEciCurve: number[] = [];
+    let groundTrackCurve: number[] = [];
+
+    for (let i = 0; i < segments; i++) {
+      iterDate = new Date(timer.current.now());
+      // .add(i * 60, 'seconds')
+      // .toDate(); // !!!!!!!
+      iterDate.setMinutes(iterDate.getMinutes() + i / SEGMENT_MULTIPLIER);
+      iterPosVel = satellite.propagate(satRec, iterDate);
+      iterGmst = satellite.gstime(iterDate);
+      if (typeof iterPosVel.position === 'boolean') return null;
+
+      if (orbits.eci) {
+        // TODO: Shift ECI orbit to match middle with satellite position
+        iterPositionEci = satellite.eciToEcf(iterPosVel.position, gmst);
+        orbitEciCurve.push(iterPositionEci.x * SCALE);
+        orbitEciCurve.push(iterPositionEci.y * SCALE);
+        orbitEciCurve.push(iterPositionEci.z * SCALE);
+        dupes = orbitEciCurve.slice(-3);
+        orbitEciCurve.push(...dupes);
+      }
+
+      if (orbits.ecef) {
+        iterPositionEcef = satellite.eciToEcf(iterPosVel.position, iterGmst);
+        orbitEcefCurve.push(iterPositionEcef.x * SCALE);
+        orbitEcefCurve.push(iterPositionEcef.y * SCALE);
+        orbitEcefCurve.push(iterPositionEcef.z * SCALE);
+        dupes = orbitEcefCurve.slice(-3);
+        orbitEcefCurve.push(...dupes);
+      }
+    }
+
+    /*
+    const iterGroundPositionsGD = getGroundTracksSync({
+      tle: [tle1, tle2],
+      startTimeMS: timer.current.now(),
+      stepMS: 60 * 1000,
+      isLngLatFormat: true,
+    });
+    for (let lngLatPos of iterGroundPositionsGD[1]) {
+      const iterGroundPosition = satellite.ecfToEci(
+        satellite.geodeticToEcf({
+          longitude: degToRad(lngLatPos[0]),
+          latitude: degToRad(lngLatPos[1]),
+          height: 0,
+        }),
+        gmst,
+      );
+      groundTrackCurve.push(iterGroundPosition.x * SCALE);
+      groundTrackCurve.push(iterGroundPosition.y * SCALE);
+      groundTrackCurve.push(iterGroundPosition.z * SCALE);
+  
+      let dupes = groundTrackCurve.slice(-3);
+      groundTrackCurve.push(...dupes);
+    }
+    */
+
+    data.orbitEcefCurve = orbitEcefCurve;
+    data.orbitEciCurve = orbitEciCurve;
   }
-
-  /*
-  const iterGroundPositionsGD = getGroundTracksSync({
-    tle: [tle1, tle2],
-    startTimeMS: timer.current.now(),
-    stepMS: 60 * 1000,
-    isLngLatFormat: true,
-  });
-  for (let lngLatPos of iterGroundPositionsGD[1]) {
-    const iterGroundPosition = satellite.ecfToEci(
-      satellite.geodeticToEcf({
-        longitude: degToRad(lngLatPos[0]),
-        latitude: degToRad(lngLatPos[1]),
-        height: 0,
-      }),
-      gmst,
-    );
-    groundTrackCurve.push(iterGroundPosition.x * SCALE);
-    groundTrackCurve.push(iterGroundPosition.y * SCALE);
-    groundTrackCurve.push(iterGroundPosition.z * SCALE);
-
-    let dupes = groundTrackCurve.slice(-3);
-    groundTrackCurve.push(...dupes);
-  }
-  */
-
-  data.orbitEcefCurve = orbitEcefCurve;
-  data.orbitEciCurve = orbitEciCurve;
-
   // data.groundTrackCurve = groundTrackCurve;
 
   return data;
