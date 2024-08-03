@@ -43,11 +43,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
       />
       <ambientLight intensity={0.05} />
       <Sun timer={timer} />
-      {false ? (
-        <ArcballOrbitControls trackballRadius={EARTH_MEAN_RADIUS} />
-      ) : (
-        <EarthControls />
-      )}
+      <EarthControls />
       <group rotation={[Math.PI / 2, 0, 0]}>
         <Earth textures={textures} />
         <Helpers />
