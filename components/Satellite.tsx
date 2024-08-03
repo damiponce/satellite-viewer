@@ -214,7 +214,7 @@ function satelliteCalc(
     extraData: '',
   };
 
-  const timeNow = new Date(timer.now());
+  const timeNow = new Date(timer.current.now());
 
   const posVel = satellite.propagate(satRec, timeNow);
 
@@ -285,7 +285,7 @@ function satelliteCalc(
   let groundTrackCurve: number[] = [];
 
   for (let i = 0; i < segments; i++) {
-    const iterDate = new Date(timer.now());
+    const iterDate = new Date(timer.current.now());
     // .add(i * 60, 'seconds')
     // .toDate(); // !!!!!!!
     iterDate.setMinutes(iterDate.getMinutes() + i / SEGMENT_MULTIPLIER);
@@ -312,7 +312,7 @@ function satelliteCalc(
   /*
   const iterGroundPositionsGD = getGroundTracksSync({
     tle: [tle1, tle2],
-    startTimeMS: timer.now(),
+    startTimeMS: timer.current.now(),
     stepMS: 60 * 1000,
     isLngLatFormat: true,
   });
