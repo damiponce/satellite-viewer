@@ -42,13 +42,13 @@ const settings: Settings = {
     },
     orbitEci: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Orbit (ECI)',
       tooltip: 'Show ECI orbit',
     },
     orbitEcef: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Orbit track',
       tooltip: 'Show orbit track',
     },

@@ -1,6 +1,7 @@
-import { OrbitControls } from '@react-three/drei';
+import { CameraControls, OrbitControls } from '@react-three/drei';
 import React from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
 import { EARTH_MEAN_RADIUS } from '@/utils/constants';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
@@ -13,6 +14,7 @@ import {
 export default function EarthControls() {
   const orbitRef = React.useRef<_OrbitControls>(null!);
   const trackballRef = React.useRef<_TrackballControls>(null!);
+  const cameraControlsRef = React.useRef<CameraControls>(null);
 
   const selections = useSelector((state: RootState) => state.selections);
 
@@ -23,6 +25,30 @@ export default function EarthControls() {
   //     orbitRef.current?.update();
   //   }
   // }, [selections.focused.id]);
+
+  useFrame(() => {
+    if (cameraControlsRef.current === null) return;
+
+    if (selections.focused.id === null) {
+      cameraControlsRef.current.moveTo(0, 0, 0, true);
+    } else {
+      cameraControlsRef.current.moveTo(
+        parseFloatAuto(selections.focused.posEc.x),
+        parseFloatAuto(selections.focused.posEc.y),
+        parseFloatAuto(selections.focused.posEc.z),
+        true,
+      );
+      // let currentPosition: THREE.Vector3 = new THREE.Vector3();
+      // cameraControlsRef.current.getPosition(currentPosition)
+      // cameraControlsRef.current.setPosition(
+      //   currentPosition.x  +         parseFloatAuto(selections.focused.posEc.x),
+      //   currentPosition.y +         parseFloatAuto(selections.focused.posEc.y),
+      //   currentPosition.z +         parseFloatAuto(selections.focused.posEc.z),
+      // )
+    }
+  });
+
+  return <CameraControls ref={cameraControlsRef} />;
 
   return (
     <>

@@ -1,5 +1,5 @@
 'use client';
-import React, { StrictMode, Suspense, useLayoutEffect } from 'react';
+import React, { StrictMode, Suspense } from 'react';
 import * as THREE from 'three';
 
 import { store } from '@/lib/redux/store';
@@ -14,6 +14,7 @@ import WelcomeDialog from '@/components/AlertDIalog';
 import Loading from '@/components/overlay/Loading';
 
 import { Canvas } from '@react-three/fiber';
+import { fetchSatellites } from '@/lib/fetch';
 
 export default function App() {
   // const [, forceUpdate] = React.useReducer((x) => -x, 0);
@@ -26,9 +27,15 @@ export default function App() {
     }),
   );
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
   }, []);
+
+  // React.useEffect(() => {
+  //   fetchSatellites('starlink').then((satellites) => {
+  //     console.log(satellites);
+  //   });
+  // }, []);
 
   return (
     <StrictMode>
