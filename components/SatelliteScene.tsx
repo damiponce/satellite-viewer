@@ -1,31 +1,30 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 
+import * as THREE from 'three';
 import { Bvh, PerspectiveCamera, StatsGl, useTexture } from '@react-three/drei';
 
-import Earth from './Earth';
+import Earth from './earth/Earth';
 import Helpers from './Helpers';
 import Satellite from './Satellite';
 import Sun from './Sun';
 import EarthControls from './EarthControls';
+import SatelliteDots from './SatelliteDots';
+import { twoline2satrec } from 'satellite.js';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
-  const textures = useTexture({
-    albedoMap: '/earth/Albedo.jpg',
-    bumpMap: '/earth/Bump.jpg',
-    oceanMap: '/earth/Ocean.png',
-    lightsMap: '/earth/night_lights_modified.png',
-    // envMap: '/earth/starmap_2020_16k.jpg',
-  });
-
   const satellites = useSelector((state: RootState) => state.satellites);
 
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
   // <DynamicCanvas>
+
+  const satellitesRecs = satellites
+    .slice(0, satellites.length / 2)
+    .map((sat) => twoline2satrec(sat.tle1, sat.tle2));
 
   return (
     <Bvh>
@@ -45,16 +44,22 @@ export default function SatelliteScene({ timer }: { timer: any }) {
       <Sun timer={timer} />
       <EarthControls />
       <group rotation={[Math.PI / 2, 0, 0]}>
-        <Earth textures={textures} />
+        {/* <Earth textures={textures} /> */}
+        {/* <Suspense fallback={null}> */}
+        <Earth />
+        {/* </Suspense> */}
         <Helpers />
       </group>
-      {satellites.map((satellite) => (
+      {/* {satellites.map((satellite) => (
         <Satellite
           key={`satellite-${satellite.noradId}`}
           data={satellite}
           timer={timer}
         />
-      ))}
+      ))} */}
+
+      <SatelliteDots data={satellitesRecs} timer={timer} />
+
       {false && <StatsGl />}
     </Bvh>
   );

@@ -127,7 +127,7 @@ export default function Satellite({
   return (
     // <Suspense fallback={null}>
     <group>
-      <Orbit
+      {/* <Orbit
         // @ts-ignore
         enabled={settings.elements.orbitEci}
         linewidth={0.9}
@@ -157,7 +157,7 @@ export default function Satellite({
         linewidth={0.9}
         color={0x00ff00}
         curve={satData.current?.groundTrackCurve}
-      />
+      /> */}
 
       <mesh
         position={satData.current?.positionEcef || new THREE.Vector3()}
@@ -165,9 +165,9 @@ export default function Satellite({
         renderOrder={100}
       >
         {/* @ts-ignore */}
-        {!!settings.elements.point && <circleGeometry args={[0.075]} />}
+        {!!settings.elements.point && <circleGeometry args={[0.015, 3]} />}
         {/* @ts-ignore */}
-        {!!settings.elements.label && (
+        {/* {!!settings.elements.label && (
           <Text
             color={data.color}
             ref={labelRef}
@@ -180,7 +180,7 @@ export default function Satellite({
           >
             {data.name}
           </Text>
-        )}
+        )} */}
         <meshPhysicalMaterial color={data.color} emissive={data.color} />
       </mesh>
     </group>

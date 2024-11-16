@@ -36,7 +36,7 @@ const settings: Settings = {
     },
     label: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Label',
       tooltip: 'Show label',
     },

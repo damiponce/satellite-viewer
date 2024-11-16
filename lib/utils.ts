@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import * as THREE from 'three';
+import moment from 'moment';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,4 +27,12 @@ export function parseFloatAuto(value: number | string) {
   } else {
     return value;
   }
+}
+
+export function isCookieExpired(str?: string) {
+  if (!str) return true;
+  const match = str.match(/expires=([^;]+)/);
+  if (!match) return true;
+  const expiryDate = new Date(match[1]);
+  return expiryDate <= new Date();
 }

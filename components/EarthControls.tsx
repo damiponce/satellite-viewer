@@ -48,7 +48,13 @@ export default function EarthControls() {
     }
   });
 
-  return <CameraControls ref={cameraControlsRef} />;
+  return (
+    <CameraControls
+      ref={cameraControlsRef}
+      smoothTime={0}
+      draggingSmoothTime={0}
+    />
+  );
 
   return (
     <>
