@@ -23,7 +23,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
   // <DynamicCanvas>
 
   const satellitesRecs = satellites
-    .slice(0, satellites.length / 2)
+    .slice(0, satellites.length / 1)
     .map((sat) => twoline2satrec(sat.tle1, sat.tle2));
 
   return (

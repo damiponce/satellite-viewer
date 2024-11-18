@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useReducer } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useReducer,
+  Suspense,
+} from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Satellite,
@@ -58,6 +64,7 @@ import {
   toggleFocused,
   toggleInfo,
 } from '@/lib/selections/selectionsSlice';
+import { SatellitesType } from '@/lib/satellites/satellite';
 
 const Timeline = dynamic(() => import('./Timeline'), { ssr: false });
 
@@ -286,133 +293,13 @@ export default function Overlay({ timer }: { timer: any }) {
                                 <Plus className='h-5 w-5' />
                               </Button>
                             </div>
-                            <div className='flex flex-col flex-nowrap gap-4 max-h-[40vh] overflow-y-scroll'>
-                              {satellites.length > 0 ? (
-                                satellites.map((satellite) => (
-                                  <div
-                                    key={`sat-list-${satellite.name}`}
-                                    className='flex flex-row h-5 items-center '
-                                  >
-                                    <Checkbox
-                                      className='h-5 w-5 '
-                                      checked={satellite.visible}
-                                      onCheckedChange={() => {
-                                        dispatch(
-                                          setVisible({
-                                            noradId: satellite.noradId,
-                                            visible: !satellite.visible,
-                                          }),
-                                        );
-                                      }}
-                                    />
-                                    <Label
-                                      className='font-normal mx-2 mr-6 w-full _flex _flex-row _items-center'
-                                      htmlFor='airplane-mode'
-                                    >
-                                      {satellite.name}
-                                      <span className='ml-[0.3rem] text-[0.6rem] font-semibold text-muted-foreground'>
-                                        {false && (
-                                          <span className='text-[0.5rem]'>
-                                            NORAD
-                                            <br />
-                                          </span>
-                                        )}
-                                        {satellite.noradId}
-                                      </span>
-                                    </Label>
-
-                                    <Button
-                                      variant='secondary'
-                                      className='h-5 aspect-square bg-transparent p-0 ml-1'
-                                      onClick={() => {
-                                        dispatch(
-                                          toggleInfo({ id: satellite.noradId }),
-                                        );
-                                      }}
-                                    >
-                                      <Info
-                                        className={cn(
-                                          'h-4 w-4',
-                                          selections.info.id ===
-                                            satellite.noradId
-                                            ? ''
-                                            : 'stroke-muted-foreground/50',
-                                        )}
-                                        strokeWidth={1.75}
-                                      />
-                                    </Button>
-                                    <Button
-                                      variant='secondary'
-                                      className='h-5 aspect-square bg-transparent p-0 ml-1'
-                                      disabled={!satellite.visible}
-                                      onClick={() => {
-                                        dispatch(
-                                          toggleFocused({
-                                            id: satellite.noradId,
-                                          }),
-                                        );
-                                      }}
-                                    >
-                                      <ScanEye
-                                        className={cn(
-                                          'h-4 w-4',
-                                          selections.focused.id ===
-                                            satellite.noradId
-                                            ? ''
-                                            : 'stroke-muted-foreground/50',
-                                        )}
-                                        strokeWidth={1.75}
-                                      />
-                                    </Button>
-                                    <Button
-                                      variant='secondary'
-                                      className='h-5 aspect-square bg-transparent p-0 ml-1'
-                                      onClick={() => {
-                                        const satClone = cloneDeep(satellite);
-                                        const satIndex = satellites.findIndex(
-                                          (s) =>
-                                            s.noradId === satellite.noradId,
-                                        );
-                                        dispatch(
-                                          removeSatellite({
-                                            noradId: satellite.noradId,
-                                          }),
-                                        );
-                                        toast('Satellite removed', {
-                                          action: {
-                                            label: 'Undo',
-                                            onClick: () => {
-                                              if (
-                                                satellites.findIndex(
-                                                  (s) => s.noradId === satIndex,
-                                                ) > -1
-                                              )
-                                                return;
-                                              dispatch(
-                                                addRawSatellite({
-                                                  satellite: satClone,
-                                                  index: satIndex,
-                                                }),
-                                              );
-                                            },
-                                          },
-                                          closeButton: false,
-                                        });
-                                      }}
-                                    >
-                                      <X
-                                        className='h-4 w-4'
-                                        strokeWidth={1.75}
-                                      />
-                                    </Button>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className='text-sm text-muted-foreground/50 h-5'>
-                                  No satellites added.
-                                </p>
-                              )}
-                            </div>
+                            <Suspense fallback={null}>
+                              <SatList
+                                satellites={satellites}
+                                dispatch={dispatch}
+                                selections={selections}
+                              />
+                            </Suspense>
                           </div>
                         ),
                         satellite_elements: Object.entries(
@@ -674,3 +561,135 @@ export default function Overlay({ timer }: { timer: any }) {
     </div>
   );
 }
+
+const SatList = ({
+  satellites,
+  dispatch,
+  selections,
+}: {
+  satellites: SatellitesType;
+  dispatch: any;
+  selections: any;
+}) => (
+  <div className='flex flex-col flex-nowrap gap-4 max-h-[40vh] overflow-y-scroll'>
+    {satellites.length > 0 ? (
+      satellites.map((satellite) => (
+        <div
+          key={`sat-list-${satellite.name}`}
+          className='flex flex-row h-5 items-center '
+        >
+          <Checkbox
+            className='h-5 w-5 '
+            checked={satellite.visible}
+            onCheckedChange={() => {
+              dispatch(
+                setVisible({
+                  noradId: satellite.noradId,
+                  visible: !satellite.visible,
+                }),
+              );
+            }}
+          />
+          <Label
+            className='font-normal mx-2 mr-6 w-full _flex _flex-row _items-center'
+            htmlFor='airplane-mode'
+          >
+            {satellite.name}
+            <span className='ml-[0.3rem] text-[0.6rem] font-semibold text-muted-foreground'>
+              {false && (
+                <span className='text-[0.5rem]'>
+                  NORAD
+                  <br />
+                </span>
+              )}
+              {satellite.noradId}
+            </span>
+          </Label>
+
+          <Button
+            variant='secondary'
+            className='h-5 aspect-square bg-transparent p-0 ml-1'
+            onClick={() => {
+              dispatch(
+                toggleInfo({
+                  id: satellite.noradId,
+                }),
+              );
+            }}
+          >
+            <Info
+              className={cn(
+                'h-4 w-4',
+                selections.info.id === satellite.noradId
+                  ? ''
+                  : 'stroke-muted-foreground/50',
+              )}
+              strokeWidth={1.75}
+            />
+          </Button>
+          <Button
+            variant='secondary'
+            className='h-5 aspect-square bg-transparent p-0 ml-1'
+            disabled={!satellite.visible}
+            onClick={() => {
+              dispatch(
+                toggleFocused({
+                  id: satellite.noradId,
+                }),
+              );
+            }}
+          >
+            <ScanEye
+              className={cn(
+                'h-4 w-4',
+                selections.focused.id === satellite.noradId
+                  ? ''
+                  : 'stroke-muted-foreground/50',
+              )}
+              strokeWidth={1.75}
+            />
+          </Button>
+          <Button
+            variant='secondary'
+            className='h-5 aspect-square bg-transparent p-0 ml-1'
+            onClick={() => {
+              const satClone = cloneDeep(satellite);
+              const satIndex = satellites.findIndex(
+                (s) => s.noradId === satellite.noradId,
+              );
+              dispatch(
+                removeSatellite({
+                  noradId: satellite.noradId,
+                }),
+              );
+              toast('Satellite removed', {
+                action: {
+                  label: 'Undo',
+                  onClick: () => {
+                    if (
+                      satellites.findIndex((s) => s.noradId === satIndex) > -1
+                    )
+                      return;
+                    dispatch(
+                      addRawSatellite({
+                        satellite: satClone,
+                        index: satIndex,
+                      }),
+                    );
+                  },
+                },
+                closeButton: false,
+              });
+            }}
+          >
+            <X className='h-4 w-4' strokeWidth={1.75} />
+          </Button>
+        </div>
+      ))
+    ) : (
+      <p className='text-sm text-muted-foreground/50 h-5'>
+        No satellites added.
+      </p>
+    )}
+  </div>
+);

@@ -135,6 +135,7 @@ export default function Satellite({
       );
       worker.onmessage = (e) => {
         satDataArr.current[i] = e.data;
+        // forceUpdate();
         // setSatDataArr((prev) => {
         //   prev[1] = e.data;
         //   return prev;
@@ -155,7 +156,9 @@ export default function Satellite({
     };
   }, []);
 
-  React.useEffect(() => {
+  // React.useEffect(() => {
+  useFrame(() => {
+    // console.log('satDataArr');
     if (!instancedMeshRef.current) return;
     timeNow = new Date(timer.current.now());
     // satData = data.map(
@@ -183,7 +186,7 @@ export default function Satellite({
     camDist = 0.035 * camera.position.clone().distanceTo(ORIGIN_VEC);
 
     for (let j = 0; j < NUM_WORKERS; j++) {
-      for (let i = 0; i < data.length; i++) {
+      for (let i = 0; i < satDataArr.current[j].length; i++) {
         if (!satDataArr.current[j][i]) continue;
         instanceMatrix.identity();
         instancedMeshRef.current.setMatrixAt(
@@ -200,10 +203,11 @@ export default function Satellite({
       }
     }
 
-    // forceUpdate();
+    forceUpdate();
     if (instancedMeshRef.current)
       instancedMeshRef.current.instanceMatrix.needsUpdate = true;
-  }, [satDataArr.current[0][0]]);
+    // }, [satDataArr.current[0]]);
+  });
 
   return (
     <instancedMesh ref={instancedMeshRef} args={[, , data.length]}>
