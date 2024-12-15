@@ -1,5 +1,5 @@
+import { satelliteCalc } from '@/lib/utils';
 import { Dispatch } from '@reduxjs/toolkit';
-import { satelliteCalc } from './SatelliteDots';
 
 import { SatRec } from 'satellite.js';
 
@@ -13,10 +13,10 @@ self.onmessage = function (e) {
     dataChunk: any[];
   } = e.data;
 
-  const satDatas = dataChunk.map((sat, i) => {
+  const satDatas = dataChunk.map((sat) => {
     return satelliteCalc(
       timeNow,
-      dataChunk[i],
+      sat,
       0,
       {
         focused: false,
@@ -26,5 +26,7 @@ self.onmessage = function (e) {
     );
   });
 
-  self.postMessage(satDatas);
+  setTimeout(() => {
+    self.postMessage(satDatas);
+  }, 0.1 * 1000);
 };

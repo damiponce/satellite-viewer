@@ -19,3 +19,8 @@ export async function loadJsonData(key: string) {
   const db = await dbPromise;
   return await db.get('jsonStore', key);
 }
+
+export async function countJsonData(key: string) {
+  const db = await dbPromise;
+  return await db.count('jsonStore', key);
+}

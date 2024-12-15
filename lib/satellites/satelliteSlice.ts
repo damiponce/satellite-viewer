@@ -3,7 +3,8 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { set, clone, cloneDeep } from 'lodash';
 import { SatelliteType, SatellitesType } from './satellite';
 import moment from 'moment';
-import { tempSats as initialState } from './temp';
+
+const initialState: SatellitesType = [];
 
 const emptySatellite: SatelliteType = {
   noradId: 0,
@@ -105,7 +106,7 @@ export const satellitesSlice = createSlice({
       satellite.fetchedAt = action.payload.fetchedAt;
       state.push(satellite);
     },
-    addSatelliteFromDB: (
+    addSatellitesFromDB: (
       state,
       action: PayloadAction<
         {
@@ -123,8 +124,10 @@ export const satellitesSlice = createSlice({
         }[]
       >,
     ) => {
+      console.log('EMPTYING STATE', state);
       // empty the state
       state.splice(0, state.length);
+      console.log('AFTER EMPTYING STATE', state);
       action.payload.forEach((gp) => {
         let satellite = cloneDeep(emptySatellite);
         satellite.noradId = parseInt(gp.gp_id);
@@ -134,6 +137,7 @@ export const satellitesSlice = createSlice({
         satellite.fetchedAt = gp.epoch.getTime();
         state.push(satellite);
       });
+      console.log('AFTER ADDING STATE', state);
     },
     removeSatellite: (state, action: PayloadAction<{ noradId: number }>) => {
       const index = state.findIndex(
@@ -175,7 +179,7 @@ export const satellitesSlice = createSlice({
 export const {
   addRawSatellite,
   addSatellite,
-  addSatelliteFromDB,
+  addSatellitesFromDB,
   removeSatellite,
   updateElement,
   setVisible,

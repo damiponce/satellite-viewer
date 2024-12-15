@@ -65,6 +65,7 @@ import {
   toggleInfo,
 } from '@/lib/selections/selectionsSlice';
 import { SatellitesType } from '@/lib/satellites/satellite';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 const Timeline = dynamic(() => import('./Timeline'), { ssr: false });
 
@@ -132,28 +133,6 @@ export default function Overlay({ timer }: { timer: any }) {
   const selections = useSelector((state: RootState) => state.selections);
   const satellites = useSelector((state: RootState) => state.satellites);
   const dispatch = useDispatch();
-
-  async function tryFetch(id: number) {
-    const staticData = await fetch(
-      `https://tle.ivanstanojevic.me/api/tle/${id}`,
-      { cache: 'force-cache', next: { revalidate: 60 * 60 * 12 } },
-    ).then((res) => {
-      if (res.ok) return res.json();
-      else {
-        toast.error('An error has ocurred...', {
-          description: `${res.status}: Error fetching data.`,
-        });
-        return null;
-      }
-    });
-    // console.log(staticData);
-  }
-
-  // tryFetch(25544);
-
-  // React.useEffect(() => {
-  //   console.log('overlay ', timer, timer.getTime());
-  // }, [timer.now()]);
 
   const infoSat = satellites.find((s) => s.noradId === selections.info.id);
 
@@ -277,29 +256,60 @@ export default function Overlay({ timer }: { timer: any }) {
                       {
                         satellite_selection: (
                           <div className='flex flex-col gap-4'>
-                            <div className='flex flex-row mb-4_'>
-                              <Input
-                                type='text'
-                                className='rounded-tr-none rounded-br-none focus-visible:ring-1 border-r-0'
-                                placeholder='NORAD ID, name, etc.'
-                                disabled
-                              />
-                              <Button
-                                type='submit'
-                                className='aspect-square p-0 rounded-tl-none rounded-bl-none '
-                                variant='outline'
-                                disabled
-                              >
-                                <Plus className='h-5 w-5' />
-                              </Button>
-                            </div>
-                            <Suspense fallback={null}>
-                              <SatList
-                                satellites={satellites}
-                                dispatch={dispatch}
-                                selections={selections}
-                              />
-                            </Suspense>
+                            <Tabs
+                              defaultValue='singles'
+                              className='min-w-[300px]'
+                            >
+                              <TabsList className='grid w-full grid-cols-2 bg-muted/30 backdrop-blur-lg backdrop-brightness-150 '>
+                                <TabsTrigger value='singles'>
+                                  Singles
+                                </TabsTrigger>
+                                <TabsTrigger value='groups'>Groups</TabsTrigger>
+                              </TabsList>
+                              <TabsContent value='singles'>
+                                <div className='flex flex-row mb-4_'>
+                                  <Input
+                                    type='text'
+                                    className='rounded-tr-none rounded-br-none focus-visible:ring-1 border-r-0'
+                                    placeholder='NORAD ID, name, etc.'
+                                    disabled
+                                  />
+                                  <Button
+                                    type='submit'
+                                    className='aspect-square p-0 rounded-tl-none rounded-bl-none '
+                                    variant='outline'
+                                    disabled
+                                  >
+                                    <Plus className='h-5 w-5' />
+                                  </Button>
+                                </div>
+                              </TabsContent>
+                              <TabsContent value='groups'>
+                                <div className='flex flex-row mb-4_'>
+                                  <Input
+                                    type='text'
+                                    className='rounded-tr-none rounded-br-none focus-visible:ring-1 border-r-0'
+                                    placeholder='NORAD ID, name, etc.'
+                                    disabled
+                                  />
+                                  <Button
+                                    type='submit'
+                                    className='aspect-square p-0 rounded-tl-none rounded-bl-none '
+                                    variant='outline'
+                                    disabled
+                                  >
+                                    <Plus className='h-5 w-5' />
+                                  </Button>
+                                </div>
+                                <Suspense fallback={null}>
+                                  <SatList
+                                    satellites={satellites}
+                                    dispatch={dispatch}
+                                    selections={selections}
+                                  />
+                                </Suspense>
+                              </TabsContent>
+                            </Tabs>
                           </div>
                         ),
                         satellite_elements: Object.entries(
@@ -575,7 +585,7 @@ const SatList = ({
     {satellites.length > 0 ? (
       satellites.map((satellite) => (
         <div
-          key={`sat-list-${satellite.name}`}
+          key={`sat-list-${satellite.noradId}`}
           className='flex flex-row h-5 items-center '
         >
           <Checkbox

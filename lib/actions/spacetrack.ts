@@ -15,10 +15,10 @@ async function loginToSpaceTrack(): Promise<string | undefined> {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: credentials.toString(),
+    cache: 'no-store',
   });
 
   if (!loginResponse.ok) return undefined;
-
   const cookie = loginResponse.headers.get('set-cookie');
   if (cookie) {
     process.env.SPACE_TRACK_COOKIE = cookie;
@@ -30,17 +30,15 @@ async function loginToSpaceTrack(): Promise<string | undefined> {
 
 export async function fetchDataWithLogin(dataUrl: string) {
   let cookie = process.env.SPACE_TRACK_COOKIE;
-  console.log('AAAAA', cookie);
 
   if (!cookie || isCookieExpired(cookie)) {
-    console.log('BBBBB', cookie);
     cookie = await loginToSpaceTrack();
     if (!cookie) {
       throw new Error('Failed to login to Space Track');
     }
   }
 
-  console.log('CCCCC', cookie);
+  console.log('COOKIE', cookie);
   const dataResponse = await fetch(dataUrl, {
     method: 'GET',
     headers: {
@@ -49,7 +47,7 @@ export async function fetchDataWithLogin(dataUrl: string) {
     cache: 'no-store',
   });
 
-  console.log('DDDDD', dataResponse.json());
+  // console.log('DDDDD', dataResponse.body);
 
   if (!dataResponse.ok) {
     throw new Error('Failed to fetch data from Space Track');

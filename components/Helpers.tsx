@@ -1,5 +1,12 @@
 import { RootState } from '@/lib/redux/store';
-import { GizmoHelper, GizmoViewport, Grid, Stats } from '@react-three/drei';
+import {
+  GizmoHelper,
+  GizmoViewport,
+  Grid,
+  PerformanceMonitor,
+  Stats,
+} from '@react-three/drei';
+import { Perf } from 'r3f-perf';
 import React from 'react';
 import { useSelector } from 'react-redux';
 
@@ -31,7 +38,11 @@ export default function Helpers() {
           fadeDistance={200}
         />
       )}
-      <Stats className='!left-[calc(50%_-_40px)] origin-top scale-110' />
+      {false ? (
+        <Stats className='!left-[calc(50%_-_40px)] origin-top scale-110' />
+      ) : (
+        <Perf overClock={false} deepAnalyze matrixUpdate colorBlind />
+      )}
     </>
   );
 }

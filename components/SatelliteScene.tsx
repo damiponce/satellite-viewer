@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
@@ -12,19 +12,21 @@ import Satellite from './Satellite';
 import Sun from './Sun';
 import EarthControls from './EarthControls';
 import SatelliteDots from './SatelliteDots';
-import { twoline2satrec } from 'satellite.js';
+import { SatRec, twoline2satrec } from 'satellite.js';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
-
+  const satellitesRecs = React.useRef<SatRec[]>([]);
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
   // <DynamicCanvas>
 
-  const satellitesRecs = satellites
-    .slice(0, satellites.length / 1)
-    .map((sat) => twoline2satrec(sat.tle1, sat.tle2));
+  useEffect(() => {
+    satellitesRecs.current = satellites
+      .slice(0, satellites.length / 4)
+      .map((sat) => twoline2satrec(sat.tle1, sat.tle2));
+  }, [satellites]);
 
   return (
     <Bvh>
@@ -38,7 +40,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
             : window.innerWidth / window.innerHeight
         }
         near={0.1}
-        far={50000}
+        far={50000000}
       />
       <ambientLight intensity={0.05} />
       <Sun timer={timer} />
