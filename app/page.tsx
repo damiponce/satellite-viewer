@@ -37,10 +37,10 @@ function WrappedApp() {
 
   async function saveGPtoIDB() {
     return await getDB().then(async (gp) => {
-      console.log('SAVING GP TO IndexedDB');
+      console.debug('SAVING GP TO IndexedDB');
       await saveJsonData('gp', gp);
-      console.log('SAVED GP TO IndexedDB');
-      console.log(gp);
+      console.debug('SAVED GP TO IndexedDB');
+      console.debug(gp);
       return gp;
     });
   }
@@ -49,10 +49,10 @@ function WrappedApp() {
     // return;
     loadJsonData('gp').then(async (data) => {
       if (!data) {
-        console.log('NO SATELLITES IN IndexedDB');
+        console.debug('NO SATELLITES IN IndexedDB');
         dispatch(addSatellitesFromDB(await saveGPtoIDB()));
       } else {
-        console.log('SATELLITES IN IndexedDB');
+        console.debug('SATELLITES IN IndexedDB');
         dispatch(addSatellitesFromDB(data));
       }
     });
@@ -77,7 +77,7 @@ function WrappedApp() {
       <Canvas dpr={[1, 1]} gl={{}}>
         <SatelliteScene timer={timer} />
       </Canvas>
-      <Overlay timer={timer} />
+      {/* <Overlay timer={timer} /> */}
       <Timekeeper
         deltaMs={10}
         set={(t) => {

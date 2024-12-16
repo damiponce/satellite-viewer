@@ -1,4 +1,10 @@
-import React, { useReducer, useRef, useEffect, useLayoutEffect } from 'react';
+import React, {
+  useReducer,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import * as THREE from 'three';
 
 import * as satellite from 'satellite.js';
@@ -9,6 +15,10 @@ import { RootState } from '@/lib/redux/store';
 import { setFocusedData } from '@/lib/selections/selectionsSlice';
 import { Dispatch } from '@reduxjs/toolkit';
 import { satelliteCalc, SatelliteCalcType } from '@/lib/utils';
+
+import initWasm, { Satellites } from '@/lib/pkg/satellite_viewer_wasm';
+import { loadWasm } from '@/lib/test_wasm';
+
 const ORIGIN_VEC = new THREE.Vector3(0, 0, 0);
 const UP_VEC = new THREE.Vector3(0, 1, 0);
 
@@ -16,7 +26,7 @@ export default function Satellite({
   data,
   timer,
 }: {
-  data: React.MutableRefObject<SatRec[]>;
+  data: React.MutableRefObject<string[]>;
   timer: any;
 }) {
   const [, forceUpdate] = useReducer((x) => -x, 0);
@@ -36,62 +46,126 @@ export default function Satellite({
 
   const satDataArr = useRef<SatelliteCalcType[]>([]);
 
-  const chunk = data.current.map(
-    (sat, i) =>
-      satelliteCalc(
-        timeNow,
-        sat,
-        0,
-        {
-          focused: false,
-          info: false,
-        },
-        dispatch,
-      )!,
-  );
+  const satClass = useRef<Satellites | null>(null);
 
-  satDataArr.current = chunk;
+  // const chunk = data.current.map(
+  //   (sat, i) =>
+  //     satelliteCalc(
+  //       timeNow,
+  //       sat,
+  //       0,
+  //       {
+  //         focused: false,
+  //         info: false,
+  //       },
+  //       dispatch,
+  //     )!,
+  // );
 
-  useLayoutEffect(() => {
+  // satDataArr.current = chunk;
+  // useEffect(() => {
+  //   if (data.current.length === 0) return;
+
+  //   initWasm();
+  //   if (!satClass.current) return;
+
+  //   satClass.current.update(data.current);
+
+  //   console.log(
+  //     'useEffect UPDATE AND PROP',
+  //     satClass.current.propagate(BigInt(timeNow.getTime())),
+  //   );
+  // }, [data.current]);
+
+  async function loadWasm() {
+    if (!satClass.current) {
+      await initWasm().then(() => {
+        console.log('PRE-INITWASM DATA', data.current);
+        satClass.current = new Satellites(data.current);
+      });
+    } else {
+      satClass.current.update(data.current);
+      console.log(
+        'useEffect UPDATE AND PROP',
+        satClass.current.propagate(BigInt(timeNow.getTime())),
+      );
+      const worker = new Worker(
+        new URL('./satelliteCalcWorker.ts', import.meta.url),
+      );
+
+      worker.onmessage = (e) => {
+        updatePositions(e.data);
+
+        workerPool.current[0].postMessage({
+          timeNow: timer.current.now(),
+          satClass: satClass.current,
+        });
+      };
+      workerPool.current.push(worker);
+
+      workerPool.current[0].postMessage({
+        timeNow: timer.current.now(),
+        satClass: satClass,
+      });
+
+      return () => {
+        workerPool.current.forEach((worker) => worker.terminate());
+      };
+    }
+  }
+
+  useEffect(() => {
     const worker = new Worker(
       new URL('./satelliteCalcWorker.ts', import.meta.url),
     );
 
+    worker.postMessage({ type: 'init', payload: { tles: data.current } });
+
+    // Listen for messages from the worker
     worker.onmessage = (e) => {
-      updatePositions(e.data);
-      // console.log('WORKER', e.data);
-      // console.log('DATA', data.current);
-      // debugger;
+      const { type, results, error } = e.data;
 
-      workerPool.current[0].postMessage({
-        timeNow: new Date(timer.current.now()),
-        dataChunk: data.current,
-      });
+      if (type === 'ready') {
+        console.log('Satellite worker is ready');
+        worker.postMessage({
+          type: 'propagate',
+          payload: { time: timer.current.now() },
+        });
+      }
+
+      if (type === 'propagateResult') {
+        // console.log('Satellite positions:', results);
+        updatePositions(results);
+        worker.postMessage({
+          type: 'propagate',
+          payload: { time: timer.current.now() },
+        });
+      }
+
+      if (type === 'error') {
+        console.error('Error from worker:', error);
+      }
     };
-    workerPool.current.push(worker);
 
-    workerPool.current[0].postMessage({
-      timeNow: new Date(timer.current.now()),
-      dataChunk: data.current,
-    });
+    workerPool.current.push(worker);
 
     return () => {
       workerPool.current.forEach((worker) => worker.terminate());
     };
-  }, []);
+  }, [data.current]);
 
-  function updatePositions(arr: SatelliteCalcType[]) {
+  function updatePositions(arr: Float64Array) {
     if (!instancedMeshRef.current) return;
 
-    for (let i = 0; i < arr.length; i++) {
-      if (!arr[i]) continue;
+    for (let i = 0; i < arr.length; i += 3) {
+      if (!arr[i + 2]) continue;
       instanceMatrix.identity();
       instancedMeshRef.current.setMatrixAt(
         i,
         instanceMatrix.makeTranslation(
-          arr[i].positionEcef.x,
-          arr[i].positionEcef.y,
-          arr[i].positionEcef.z,
+          arr[i] / 1000,
+          arr[i + 1] / 1000,
+          arr[i + 2] / 1000,
         ),
       );
     }

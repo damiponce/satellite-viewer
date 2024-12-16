@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useLayoutEffect } from 'react';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
@@ -16,7 +16,7 @@ import { SatRec, twoline2satrec } from 'satellite.js';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
-  const satellitesRecs = React.useRef<SatRec[]>([]);
+  const satellitesRecs = React.useRef<string[]>([]);
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
@@ -24,8 +24,8 @@ export default function SatelliteScene({ timer }: { timer: any }) {
 
   useEffect(() => {
     satellitesRecs.current = satellites
-      .slice(0, satellites.length / 4)
-      .map((sat) => twoline2satrec(sat.tle1, sat.tle2));
+      .slice(0, satellites.length / 2)
+      .map((sat) => `${sat.name}\n${sat.tle1}\n${sat.tle2}`);
   }, [satellites]);
 
   return (
@@ -33,7 +33,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
       <PerspectiveCamera
         makeDefault={true}
         position={[40, 40, 40]}
-        fov={30}
+        fov={20}
         aspect={
           typeof window === 'undefined'
             ? 1

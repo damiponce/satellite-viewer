@@ -124,10 +124,10 @@ export const satellitesSlice = createSlice({
         }[]
       >,
     ) => {
-      console.log('EMPTYING STATE', state);
+      console.debug('EMPTYING STATE', state);
       // empty the state
       state.splice(0, state.length);
-      console.log('AFTER EMPTYING STATE', state);
+      console.debug('AFTER EMPTYING STATE', state);
       action.payload.forEach((gp) => {
         let satellite = cloneDeep(emptySatellite);
         satellite.noradId = parseInt(gp.gp_id);
@@ -137,7 +137,7 @@ export const satellitesSlice = createSlice({
         satellite.fetchedAt = gp.epoch.getTime();
         state.push(satellite);
       });
-      console.log('AFTER ADDING STATE', state);
+      console.debug('AFTER ADDING STATE', state);
     },
     removeSatellite: (state, action: PayloadAction<{ noradId: number }>) => {
       const index = state.findIndex(
