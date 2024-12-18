@@ -1,0 +1,13 @@
+CREATE TABLE gp (
+    gp_id BIGINT PRIMARY KEY,                          
+    creation_date TIMESTAMP,                         
+    object_name VARCHAR(25),                           
+    object_id VARCHAR(12),                            
+    epoch TIMESTAMP(6),              
+    classification_type CHAR(1),                      
+    object_type VARCHAR(12),                           
+    rcs_size CHAR(6),                                    
+    tle_line0 VARCHAR(27),                             
+    tle_line1 VARCHAR(71),                             
+    tle_line2 VARCHAR(71)
+);

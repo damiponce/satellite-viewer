@@ -7,21 +7,11 @@ import moment from 'moment';
 const initialState: SatellitesType = [];
 
 const emptySatellite: SatelliteType = {
-  noradId: 0,
-  name: '',
-  tle1: '',
-  tle2: '',
-  fetchedAt: moment().valueOf(),
-  color: 0xffffff,
-  selected: false,
-  visible: true,
-  elements: {
-    point: true,
-    label: true,
-    orbitEci: false,
-    orbitEcef: false,
-    groundTrack: false,
-  },
+  object_id: 0,
+  object_name: '',
+  tle_line0: '',
+  tle_line1: '',
+  tle_line2: '',
 };
 
 // const initialState: SatellitesType = [
@@ -91,30 +81,24 @@ export const satellitesSlice = createSlice({
     addSatellite: (
       state,
       action: PayloadAction<{
-        noradId: number;
-        name: string;
-        tle1: string;
-        tle2: string;
-        fetchedAt: number;
+        object_id: number;
+        object_name: string;
+        tle_line0: string;
+        tle_line1: string;
+        tle_line2: string;
       }>,
     ) => {
-      let satellite = cloneDeep(emptySatellite);
-      satellite.noradId = action.payload.noradId;
-      satellite.name = action.payload.name;
-      satellite.tle1 = action.payload.tle1;
-      satellite.tle2 = action.payload.tle2;
-      satellite.fetchedAt = action.payload.fetchedAt;
-      state.push(satellite);
+      state.push(action.payload);
     },
     addSatellitesFromDB: (
       state,
       action: PayloadAction<
         {
           gp_id: string;
-          creation_date: Date;
+          creation_date: number;
           object_name: string;
           object_id: string;
-          epoch: Date;
+          epoch: number;
           classification_type: string;
           object_type: string;
           rcs_size: string;
@@ -124,55 +108,61 @@ export const satellitesSlice = createSlice({
         }[]
       >,
     ) => {
-      console.debug('EMPTYING STATE', state);
-      // empty the state
-      state.splice(0, state.length);
-      console.debug('AFTER EMPTYING STATE', state);
+      const DEBUG = false;
+      if (DEBUG) console.debug('EMPTYING STATE', state);
+
+      // state.splice(0, state.length);
+      state.length = 0;
+
+      if (DEBUG) console.debug('AFTER EMPTYING STATE', state);
+      if (DEBUG) console.debug('–– payload', action.payload);
+
       action.payload.forEach((gp) => {
-        let satellite = cloneDeep(emptySatellite);
-        satellite.noradId = parseInt(gp.gp_id);
-        satellite.name = gp.object_name;
-        satellite.tle1 = gp.tle_line1;
-        satellite.tle2 = gp.tle_line2;
-        satellite.fetchedAt = gp.epoch.getTime();
-        state.push(satellite);
+        state.push({
+          object_id: parseInt(gp.gp_id),
+          object_name: gp.object_name,
+          tle_line0: gp.tle_line0,
+          tle_line1: gp.tle_line1,
+          tle_line2: gp.tle_line2,
+        });
       });
-      console.debug('AFTER ADDING STATE', state);
+
+      if (DEBUG) console.debug('AFTER ADDING STATE', state);
     },
-    removeSatellite: (state, action: PayloadAction<{ noradId: number }>) => {
+    removeSatellite: (state, action: PayloadAction<{ object_id: number }>) => {
       const index = state.findIndex(
-        (satellite) => satellite.noradId === action.payload.noradId,
+        (satellite) => satellite.object_id === action.payload.object_id,
       );
       if (index !== -1) {
         state.splice(index, 1);
       }
     },
-    updateElement: (
-      state,
-      action: PayloadAction<{
-        noradId: number;
-        element: keyof SatelliteType['elements'];
-        value: any;
-      }>,
-    ) => {
-      const satellite = state.find(
-        (satellite) => satellite.noradId === action.payload.noradId,
-      );
-      if (satellite) {
-        satellite.elements[action.payload.element] = action.payload.value;
-      }
-    },
-    setVisible: (
-      state,
-      action: PayloadAction<{ noradId: number; visible: boolean }>,
-    ) => {
-      const satellite = state.find(
-        (satellite) => satellite.noradId === action.payload.noradId,
-      );
-      if (satellite) {
-        satellite.visible = action.payload.visible;
-      }
-    },
+    // updateElement: (
+    //   state,
+    //   action: PayloadAction<{
+    //     object_id: number;
+    //     element: keyof SatelliteType['elements'];
+    //     value: any;
+    //   }>,
+    // ) => {
+    //   const satellite = state.find(
+    //     (satellite) => satellite.object_id === action.payload.object_id,
+    //   );
+    //   if (satellite) {
+    //     satellite.elements[action.payload.element] = action.payload.value;
+    //   }
+    // },
+    // setVisible: (
+    //   state,
+    //   action: PayloadAction<{ noradId: number; visible: boolean }>,
+    // ) => {
+    //   const satellite = state.find(
+    //     (satellite) => satellite.noradId === action.payload.noradId,
+    //   );
+    //   if (satellite) {
+    //     satellite.visible = action.payload.visible;
+    //   }
+    // },
   },
 });
 
@@ -181,8 +171,8 @@ export const {
   addSatellite,
   addSatellitesFromDB,
   removeSatellite,
-  updateElement,
-  setVisible,
+  // updateElement,
+  // setVisible,
 } = satellitesSlice.actions;
 
 export default satellitesSlice.reducer;

@@ -31,28 +31,33 @@ function WrappedApp() {
     }),
   );
 
-  React.useLayoutEffect(() => {
-    THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
-  }, []);
-
   async function saveGPtoIDB() {
-    return await getDB().then(async (gp) => {
-      console.debug('SAVING GP TO IndexedDB');
-      await saveJsonData('gp', gp);
-      console.debug('SAVED GP TO IndexedDB');
-      console.debug(gp);
-      return gp;
-    });
+    return await getDB()
+      .then((gp) => {
+        gp.forEach((sat) => {
+          sat.creation_date = new Date(sat.creation_date).getTime();
+          sat.epoch = new Date(sat.epoch).getTime();
+        });
+        return gp;
+      })
+      .then(async (gp) => {
+        if (true) console.debug('SAVING GP TO IndexedDB');
+        await saveJsonData('gp', gp);
+        if (true) console.debug('SAVED GP TO IndexedDB');
+        if (true) console.debug(gp);
+        return gp;
+      });
   }
 
   React.useLayoutEffect(() => {
+    THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
     // return;
     loadJsonData('gp').then(async (data) => {
       if (!data) {
-        console.debug('NO SATELLITES IN IndexedDB');
+        if (true) console.debug('NO SATELLITES IN IndexedDB');
         dispatch(addSatellitesFromDB(await saveGPtoIDB()));
       } else {
-        console.debug('SATELLITES IN IndexedDB');
+        if (false) console.debug('SATELLITES IN IndexedDB');
         dispatch(addSatellitesFromDB(data));
       }
     });
@@ -64,12 +69,6 @@ function WrappedApp() {
     //   //   });
     //   // });
   });
-
-  // React.useEffect(() => {
-  //   fetchSatellites('starlink').then((satellites) => {
-  //     console.log(satellites);
-  //   });
-  // }, []);
 
   return (
     <Suspense fallback={<Loading />}>

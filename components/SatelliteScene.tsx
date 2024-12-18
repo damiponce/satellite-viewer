@@ -16,16 +16,18 @@ import { SatRec, twoline2satrec } from 'satellite.js';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
-  const satellitesRecs = React.useRef<string[]>([]);
+  const [satTles, setSatTles] = React.useState<string[]>([]);
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
   // <DynamicCanvas>
 
   useEffect(() => {
-    satellitesRecs.current = satellites
-      .slice(0, satellites.length / 2)
-      .map((sat) => `${sat.name}\n${sat.tle1}\n${sat.tle2}`);
+    setSatTles(
+      satellites
+        .slice(0, satellites.length / 1)
+        .map((sat) => `${sat.tle_line0}\n${sat.tle_line1}\n${sat.tle_line2}`),
+    );
   }, [satellites]);
 
   return (
@@ -60,7 +62,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
         />
       ))} */}
 
-      <SatelliteDots data={satellitesRecs} timer={timer} />
+      <SatelliteDots data={satTles} timer={timer} />
 
       {false && <StatsGl />}
     </Bvh>

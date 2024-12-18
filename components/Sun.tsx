@@ -39,7 +39,7 @@ export default function Sun({ timer }: { timer: any }) {
 
   return (
     <>
-      <directionalLight color='white' ref={sunRef} intensity={5} />
+      <directionalLight color='white' ref={sunRef} intensity={1} />
       {/* <mesh position={sunCartesian.normalize().multiplyScalar(5000)}>
         <sphereGeometry args={[10, 8, 8]} />
         <meshBasicMaterial color='yellow' />

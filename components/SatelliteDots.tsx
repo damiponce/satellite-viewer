@@ -4,12 +4,13 @@ import React, {
   useEffect,
   useLayoutEffect,
   useState,
+  useMemo,
 } from 'react';
 import * as THREE from 'three';
 
 import * as satellite from 'satellite.js';
 import { EciVec3, SatRec } from 'satellite.js';
-import { useFrame, useThree } from '@react-three/fiber';
+import { extend, useFrame, useThree } from '@react-three/fiber';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setFocusedData } from '@/lib/selections/selectionsSlice';
@@ -18,6 +19,16 @@ import { satelliteCalc, SatelliteCalcType } from '@/lib/utils';
 
 import initWasm, { Satellites } from '@/lib/pkg/satellite_viewer_wasm';
 import { loadWasm } from '@/lib/test_wasm';
+import {
+  Billboard,
+  Point,
+  PointMaterial,
+  Points,
+  shaderMaterial,
+} from '@react-three/drei';
+
+import { cloneDeep } from 'lodash';
+import { diff } from 'deep-object-diff';
 
 const ORIGIN_VEC = new THREE.Vector3(0, 0, 0);
 const UP_VEC = new THREE.Vector3(0, 1, 0);
@@ -26,12 +37,12 @@ export default function Satellite({
   data,
   timer,
 }: {
-  data: React.MutableRefObject<string[]>;
+  data: string[];
   timer: any;
 }) {
   const [, forceUpdate] = useReducer((x) => -x, 0);
 
-  let instanceMatrix = new THREE.Matrix4();
+  const instanceMatrix = useMemo(() => new THREE.Matrix4(), []);
   let camDist = 0;
 
   const settings = useSelector((state: RootState) => state.settings);
@@ -80,11 +91,11 @@ export default function Satellite({
   async function loadWasm() {
     if (!satClass.current) {
       await initWasm().then(() => {
-        console.log('PRE-INITWASM DATA', data.current);
-        satClass.current = new Satellites(data.current);
+        console.log('PRE-INITWASM DATA', data);
+        satClass.current = new Satellites(data);
       });
     } else {
-      satClass.current.update(data.current);
+      satClass.current.update(data);
       console.log(
         'useEffect UPDATE AND PROP',
         satClass.current.propagate(BigInt(timeNow.getTime())),
@@ -119,7 +130,9 @@ export default function Satellite({
       new URL('./satelliteCalcWorker.ts', import.meta.url),
     );
 
-    worker.postMessage({ type: 'init', payload: { tles: data.current } });
+    // console.log('About to init worker with data:', data);
+
+    worker.postMessage({ type: 'init', payload: { tles: data } });
 
     // Listen for messages from the worker
     worker.onmessage = (e) => {
@@ -136,6 +149,11 @@ export default function Satellite({
       if (type === 'propagateResult') {
         // console.log('Satellite positions:', results);
         updatePositions(results);
+        // updatePositions(
+        //   new Float32Array([
+        //     10, 10, 10, -10, -10, -10, 10, -10, -10, -10, 10, -10,
+        //   ]),
+        // );
         worker.postMessage({
           type: 'propagate',
           payload: { time: timer.current.now() },
@@ -152,56 +170,125 @@ export default function Satellite({
     return () => {
       workerPool.current.forEach((worker) => worker.terminate());
     };
-  }, [data.current]);
+  }, [data]);
 
-  function updatePositions(arr: Float64Array) {
-    if (!instancedMeshRef.current) return;
+  // function updatePositions(arr: Float32Array) {
+  //   if (!instancedMeshRef.current) return;
 
-    for (let i = 0; i < arr.length; i += 3) {
-      if (!arr[i + 2]) continue;
-      instanceMatrix.identity();
-      instancedMeshRef.current.setMatrixAt(
-        i,
-        instanceMatrix.makeTranslation(
-          arr[i] / 1000,
-          arr[i + 1] / 1000,
-          arr[i + 2] / 1000,
-        ),
-      );
-    }
-    forceUpdate();
-    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  //   for (let i = 0; i < arr.length; i += 3) {
+  //     if (!arr[i + 2]) continue;
+  //     instanceMatrix.identity();
+  //     instancedMeshRef.current.setMatrixAt(
+  //       i,
+  //       instanceMatrix.makeTranslation(
+  //         arr[i] / 1000,
+  //         arr[i + 1] / 1000,
+  //         arr[i + 2] / 1000,
+  //       ),
+  //     );
+  //   }
+  //   forceUpdate();
+  //   instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  // }
+
+  const pointsRef = useRef<THREE.Points>(null);
+
+  function updatePositions(arr: Float32Array) {
+    if (!pointsRef.current) return;
+
+    // console.log(pointsRef.current);
+    // debugger;
+
+    pointsRef.current.geometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(arr, 3),
+    );
+    pointsRef.current.geometry.getAttribute('position').needsUpdate = true;
+    pointsRef.current.geometry.computeBoundingSphere();
+
+    pointsRef.current.geometry.setAttribute(
+      'color',
+      new THREE.BufferAttribute(new Float32Array(arr.length).fill(1), 3),
+    );
+    pointsRef.current.geometry.getAttribute('color').needsUpdate = true;
+
+    pointsRef.current.matrixWorldNeedsUpdate = true;
+
+    // console.log('UPDATE POSITIONS ' + arr.length);
+    // console.log(pointsRef.current);
+    // debugger;
   }
 
-  useFrame(() => {
-    if (!instancedMeshRef.current) return;
+  // useFrame(() => {
+  //   if (!instancedMeshRef.current) return;
 
-    camera.updateMatrixWorld();
-    camDist = 0.035 * camera.position.clone().distanceTo(ORIGIN_VEC);
+  //   camera.updateMatrixWorld();
+  //   camDist = 0.035 * camera.position.clone().distanceTo(ORIGIN_VEC);
 
-    for (let i = 0; i < data.current.length; i++) {
-      if (!data.current[i]) continue;
-      instancedMeshRef.current.getMatrixAt(i, instanceMatrix);
-      instancedMeshRef.current.setMatrixAt(
-        i,
-        instanceMatrix
-          .lookAt(camera.position, ORIGIN_VEC, UP_VEC)
-          .scale(new THREE.Vector3(camDist, camDist, camDist)),
-      );
-    }
-    instancedMeshRef.current.instanceMatrix.needsUpdate = true;
-  });
+  //   for (let i = 0; i < data.current.length; i++) {
+  //     if (!data.current[i]) continue;
+  //     instancedMeshRef.current.getMatrixAt(i, instanceMatrix);
+  //     instancedMeshRef.current.setMatrixAt(
+  //       i,
+  //       instanceMatrix
+  //         .lookAt(camera.position, ORIGIN_VEC, UP_VEC)
+  //         .scale(new THREE.Vector3(camDist, camDist, camDist)),
+  //     );
+  //   }
+  //   instancedMeshRef.current.instanceMatrix.needsUpdate = true;
+  // });
+
+  // return (
+  //   <instancedMesh ref={instancedMeshRef} args={[, , 4]}>
+  //     {/* <planeGeometry args={[1, 1]} /> */}
+  //     {/* <circleGeometry args={[0.015, 4]} /> */}
+  //     {/* <sphereGeometry args={[0.15, 16, 16]} /> */}
+  //     <bufferGeometry />
+  //     <PointMaterial
+  //       transparent
+  //       vertexColors
+  //       size={4}
+  //       sizeAttenuation={false}
+  //       depthTest={true}
+  //       toneMapped={false}
+  //     />
+  //     {/* <meshPhysicalMaterial
+  //       color={0xffffff}
+  //       side={THREE.DoubleSide}
+  //       opacity={0.5}
+  //       emissive={0xffffff}
+  //       emissiveIntensity={1}
+  //     /> */}
+  //   </instancedMesh>
+  // );
 
   return (
-    <instancedMesh ref={instancedMeshRef} args={[, , data.current.length]}>
-      <circleGeometry args={[0.015, 4]} />
-      <meshPhysicalMaterial
-        color={0xffffff}
-        side={THREE.DoubleSide}
-        opacity={0.5}
-        emissive={0xffffff}
-        emissiveIntensity={1}
+    <points ref={pointsRef}>
+      <PointMaterial
+        attach='material'
+        transparent
+        vertexColors
+        size={2}
+        sizeAttenuation={false}
+        depthTest={true}
+        toneMapped={false}
       />
-    </instancedMesh>
+      <bufferGeometry>
+        <bufferAttribute
+          attach='attributes-position'
+          count={0}
+          array={new Float32Array(0)}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach='attributes-color'
+          count={0}
+          array={new Float32Array(0)}
+          itemSize={3}
+        />
+      </bufferGeometry>
+    </points>
   );
 }
+
+const tempPoints = Array.from({ length: 2000 }, (i) => 0);

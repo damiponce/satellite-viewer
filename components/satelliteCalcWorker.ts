@@ -7,8 +7,8 @@ self.onmessage = async (e) => {
 
   if (type === 'init' && payload.tles && !satellites) {
     await initWasm();
-    //increase wasm memory
-    // const memory = new WebAssembly.Memory({ initial: 2048 });
+
+    console.info('Initializing worker with TLEs:', payload.tles.length);
     satellites = new Satellites(payload.tles);
     self.postMessage({ type: 'ready' });
   }

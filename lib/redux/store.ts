@@ -11,6 +11,8 @@ export const store = configureStore({
     satellites: satelliteReducer,
     time: timeReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
 
 if (process.env.NODE_ENV !== 'production' && module.hot) {

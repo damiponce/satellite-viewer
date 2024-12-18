@@ -42,6 +42,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
     "date-fns": "^3.3.1",
+    "deep-object-diff": "^1.1.9",
     "ecef-projector": "^1.0.1",
     "framer-motion-3d": "^10.17.9",
     "fs": "^0.0.2",
