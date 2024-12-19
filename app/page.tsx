@@ -11,7 +11,7 @@ import SatelliteScene from '@/components/SatelliteScene';
 import hypertimer from 'hypertimer';
 import Timekeeper from '@/lib/Timekeeper';
 import WelcomeDialog from '@/components/AlertDIalog';
-import Loading from '@/components/overlay/Loading';
+import { LoadingProvider } from '@/components/LoadingScreen';
 
 import { Canvas } from '@react-three/fiber';
 import { getDB, isDBOld, updateDB } from '@/lib/actions/gp';
@@ -71,9 +71,10 @@ function WrappedApp() {
   });
 
   return (
-    <Suspense fallback={<Loading />}>
+    // <Suspense fallback={<Loading />}>
+    <>
       {process.env.NODE_ENV !== 'development' && <WelcomeDialog />}
-      <Canvas dpr={[1, 1]} gl={{}}>
+      <Canvas dpr={[1, 3]} gl={{}}>
         <SatelliteScene timer={timer} />
       </Canvas>
       {/* <Overlay timer={timer} /> */}
@@ -84,7 +85,8 @@ function WrappedApp() {
           // forceUpdate();
         }}
       />
-    </Suspense>
+    </>
+    // </Suspense>
   );
 }
 
@@ -93,7 +95,9 @@ export default function App() {
     <StrictMode>
       <div id='canvas-container' className='overflow-hidden'>
         <Provider store={store}>
-          <WrappedApp />
+          <LoadingProvider>
+            <WrappedApp />
+          </LoadingProvider>
         </Provider>
       </div>
     </StrictMode>

@@ -18,7 +18,9 @@ self.onmessage = async (e) => {
     if (satellites) {
       try {
         const results = satellites.propagate(BigInt(Math.round(time)));
+        // setTimeout(() => {
         self.postMessage({ type: 'propagateResult', results });
+        // }, 1000 / 60);
       } catch (err: any) {
         self.postMessage({ type: 'error', error: err.message });
       }

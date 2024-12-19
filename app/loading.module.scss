@@ -1,0 +1,54 @@
+.demo_container {
+  width: 300px;
+  margin: auto;
+}
+
+.progress_bar {
+  height: 4px;
+  background-color: #fff1;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  border-radius: 2px;
+}
+
+.progress_bar_value {
+  position: absolute;
+  left: 0;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  background-color: white;
+  animation: 1s frontAnimation 1s infinite cubic-bezier(0.4, 0, 0.6, 1),
+    1s backAnimation 1s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes frontAnimation {
+  0% {
+    right: 100%;
+  }
+  55% {
+    right: 0;
+  }
+  70% {
+    right: 0;
+  }
+  100% {
+    right: 0;
+  }
+}
+
+@keyframes backAnimation {
+  0% {
+    left: 0;
+  }
+  15% {
+    left: 0;
+  }
+  70% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}

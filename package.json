@@ -68,6 +68,7 @@
     "react-resizable-panels": "^1.0.9",
     "react-scan": "^0.0.5",
     "react-spring": "^9.7.3",
+    "sass": "^1.83.0",
     "satellite.js": "^5.0.0",
     "sonner": "^1.4.0",
     "suncalc": "^1.9.0",

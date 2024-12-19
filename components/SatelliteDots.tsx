@@ -29,6 +29,7 @@ import {
 
 import { cloneDeep } from 'lodash';
 import { diff } from 'deep-object-diff';
+import { useLoading } from './LoadingScreen';
 
 const ORIGIN_VEC = new THREE.Vector3(0, 0, 0);
 const UP_VEC = new THREE.Vector3(0, 1, 0);
@@ -41,6 +42,8 @@ export default function Satellite({
   timer: any;
 }) {
   const [, forceUpdate] = useReducer((x) => -x, 0);
+
+  const { completeLoadingTask } = useLoading();
 
   const instanceMatrix = useMemo(() => new THREE.Matrix4(), []);
   let camDist = 0;
@@ -126,6 +129,9 @@ export default function Satellite({
   }
 
   useEffect(() => {
+    if (data.length === 0) return;
+
+    completeLoadingTask('satellite-data');
     const worker = new Worker(
       new URL('./satelliteCalcWorker.ts', import.meta.url),
     );

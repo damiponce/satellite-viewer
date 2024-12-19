@@ -15,7 +15,6 @@ import Bump from '@/public/earth/Bump.jpg';
 import Clouds from '@/public/earth/Clouds.png';
 import Ocean from '@/public/earth/Ocean.png';
 import NightLights from '@/public/earth/night_lights_modified.png';
-import Loading from '../overlay/Loading';
 import EarthTextures from './EarthTextures';
 
 const fragmentShader = `
@@ -89,9 +88,9 @@ function Earth() {
       <group dispose={null}>
         <mesh>
           <sphereGeometry args={[EARTH_MEAN_RADIUS, 100, 100]} />
-          <Suspense fallback={<meshBasicMaterial color='' />}>
-            <EarthTextures />
-          </Suspense>
+          {/* <Suspense fallback={<meshBasicMaterial color='' />}> */}
+          <EarthTextures />
+          {/* </Suspense> */}
         </mesh>
         <mesh renderOrder={1}>
           <sphereGeometry args={[EARTH_MEAN_RADIUS * 1.2, 100, 100]} />

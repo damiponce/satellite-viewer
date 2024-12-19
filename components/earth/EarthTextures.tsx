@@ -1,33 +1,122 @@
-import { useTexture } from '@react-three/drei';
-import React from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import * as THREE from 'three';
+import { useKTX2, useTexture } from '@react-three/drei';
+import { useLoading } from '@/components/LoadingScreen';
+import { useLoader, useThree } from '@react-three/fiber';
+import { KTX2Loader } from 'three-stdlib';
 
 export default function EarthTextures() {
-  const textures = useTexture({
-    albedoMap: '/earth/Albedo.jpg',
-    bumpMap: '/earth/Bump.jpg',
-    oceanMap: '/earth/Ocean.png',
-    lightsMap: '/earth/night_lights_modified.png',
-    // envMap: '/earth/starmap_2020_16k.jpg',
-  });
+  const { addLoadingTask, completeLoadingTask } = useLoading();
+  const { gl } = useThree();
+  // const textures = useTexture(
+  //   {
+  //     albedoMap: '/earth/Albedo.jpg',
+  //     bumpMap: '/earth/Bump.jpg',
+  //     oceanMap: '/earth/Ocean.png',
+  //     lightsMap: '/earth/night_lights_modified.png',
+  //     // envMap: '/earth/starmap_2020_16k.jpg',
+  //   },
+  //   // () => {
+  //   //   completeLoadingTask('earth-textures');
+  //   // },
+  // );
 
-  if (textures) {
-    textures.albedoMap.colorSpace = THREE.SRGBColorSpace;
+  // useEffect(() => {
+  //   addLoadingTask('earth-textures');
+  // }, []);
 
-    return (
-      <meshStandardMaterial
-        map={textures.albedoMap}
-        bumpMap={textures.bumpMap}
-        bumpScale={2}
-        roughnessMap={textures.oceanMap}
-        metalness={0.2}
-        metalnessMap={textures.oceanMap}
-        emissiveMap={textures.lightsMap}
-        emissive={new THREE.Color(0xffff88)}
-        onBeforeCompile={earthShaderOBC}
-      />
-    );
-  }
+  // ============================================
+
+  // const [albedoMap, bumpMap, waterMap] = useKTX2([
+  //   '/earth/earth_albedo_c.ktx2',
+  //   '/earth/earth_bump_c.ktx2',
+  //   '/earth/earth_water_c.ktx2',
+  // ]);
+
+  // useEffect(() => {
+  //   if (albedoMap && bumpMap && waterMap) {
+  //     completeLoadingTask('earth-textures');
+  //   }
+  // }, [albedoMap, bumpMap, waterMap]);
+
+  // ============================================
+
+  // const loader = useLoader(KTX2Loader, '/earth/earth_albedo_c.ktx2');
+
+  const [albedoMap, setAlbedoMap] = useState<THREE.CompressedTexture>();
+  const [bumpMap, setBumpMap] = useState<THREE.CompressedTexture>();
+  const [waterMap, setWaterMap] = useState<THREE.CompressedTexture>();
+  // const [lightsMap, setLightsMap] = useState<THREE.CompressedTexture>();
+
+  useEffect(() => {
+    async function loadTextures() {
+      const ktx2loader = new KTX2Loader().detectSupport(gl);
+      await ktx2loader.loadAsync('/earth/earth_albedo_c.ktx2').then((t) => {
+        setAlbedoMap(() => {
+          if (!t) return t;
+          t.wrapT = THREE.RepeatWrapping;
+          t.repeat.y = -1;
+          return t;
+        });
+      });
+      await ktx2loader.loadAsync('/earth/earth_bump_c.ktx2').then((t) => {
+        setBumpMap(() => {
+          if (!t) return t;
+          t.wrapT = THREE.RepeatWrapping;
+          t.repeat.y = -1;
+          return t;
+        });
+      });
+      await ktx2loader.loadAsync('/earth/earth_water_c.ktx2').then((t) => {
+        setWaterMap(() => {
+          if (!t) return t;
+          t.wrapT = THREE.RepeatWrapping;
+          t.repeat.y = -1;
+          return t;
+        });
+      });
+      // await ktx2loader
+      //   .loadAsync('/earth/earth_lights_c.ktx2')
+      //   .then((texture) => {
+      //     setLightsMap(texture);
+      //   });
+      completeLoadingTask('earth-textures');
+    }
+    loadTextures();
+  }, []);
+
+  return (
+    <meshStandardMaterial
+      map={albedoMap}
+      color={new THREE.Color(0xffffff)}
+      bumpMap={bumpMap}
+      bumpScale={2}
+      roughnessMap={waterMap}
+      metalness={0.2}
+      metalnessMap={waterMap}
+      // emissiveMap={lightsMap}
+      // emissive={new THREE.Color(0xffff88)}
+      onBeforeCompile={earthShaderOBC}
+    />
+  );
+
+  // if (textures) {
+  //   textures.albedoMap.colorSpace = THREE.SRGBColorSpace;
+
+  //   return (
+  //     <meshStandardMaterial
+  //       map={textures.albedoMap}
+  //       bumpMap={textures.bumpMap}
+  //       bumpScale={2}
+  //       roughnessMap={textures.oceanMap}
+  //       metalness={0.2}
+  //       metalnessMap={textures.oceanMap}
+  //       emissiveMap={textures.lightsMap}
+  //       emissive={new THREE.Color(0xffff88)}
+  //       onBeforeCompile={earthShaderOBC}
+  //     />
+  //   );
+  // }
 }
 
 function earthShaderOBC(shader: any) {
