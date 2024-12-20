@@ -17,8 +17,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
       <head>
         {/* <script
           src='https://unpkg.com/react-scan/dist/auto.global.js'
-          async
-        ></script> */}
+          async /> */}
         <meta name='viewport' content='width=device-width, user-scalable=no' />
       </head>
       <body className={cn(inter.className, 'overflow-hidden relative')}>
@@ -28,6 +27,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default dynamic(() => Promise.resolve(RootLayout), {
-  ssr: false,
-});
+export default RootLayout;
+// export default dynamic(() => Promise.resolve(RootLayout), {
+//   ssr: false,
+// });

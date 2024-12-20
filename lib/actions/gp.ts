@@ -5,7 +5,7 @@ import moment from 'moment';
 import { fetchDataWithLogin } from '@/lib/actions/spacetrack';
 
 function chunkArray(arr: any[], size: number) {
-  const result = [];
+  const result: any[][] = [];
   for (let i = 0; i < arr.length; i += size) {
     result.push(arr.slice(i, i + size));
   }
@@ -30,8 +30,8 @@ export async function updateDB() {
   const chunks = chunkArray(fetch_data, 1000);
   console.log('CHUNKS:', chunks.length);
 
-  const errors = [];
-  const failed_strs = [];
+  const errors: unknown[] = [];
+  const failed_strs: string[] = [];
   let i = 1;
   await client.query('TRUNCATE gp;');
   for (const chunk of chunks) {

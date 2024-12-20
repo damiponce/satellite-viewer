@@ -17,6 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import { getDB, isDBOld, updateDB } from '@/lib/actions/gp';
 import { countJsonData, loadJsonData, saveJsonData } from '@/lib/idb/storage';
 import { addSatellitesFromDB } from '@/lib/satellites/satelliteSlice';
+import { loadData } from '@/lib/loadData';
 
 function WrappedApp() {
   // const [, forceUpdate] = React.useReducer((x) => -x, 0);
@@ -31,43 +32,11 @@ function WrappedApp() {
     }),
   );
 
-  async function saveGPtoIDB() {
-    return await getDB()
-      .then((gp) => {
-        gp.forEach((sat) => {
-          sat.creation_date = new Date(sat.creation_date).getTime();
-          sat.epoch = new Date(sat.epoch).getTime();
-        });
-        return gp;
-      })
-      .then(async (gp) => {
-        if (true) console.debug('SAVING GP TO IndexedDB');
-        await saveJsonData('gp', gp);
-        if (true) console.debug('SAVED GP TO IndexedDB');
-        if (true) console.debug(gp);
-        return gp;
-      });
-  }
-
   React.useLayoutEffect(() => {
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
-    // return;
-    loadJsonData('gp').then(async (data) => {
-      if (!data) {
-        if (true) console.debug('NO SATELLITES IN IndexedDB');
-        dispatch(addSatellitesFromDB(await saveGPtoIDB()));
-      } else {
-        if (false) console.debug('SATELLITES IN IndexedDB');
-        dispatch(addSatellitesFromDB(data));
-      }
-    });
-
-    //   // isDBRecent().then((res) => {
-    //   //   console.log('isDBRecent?', res);
-    //   //   getDB().then((gp) => {
-    //   //     console.log(gp);
-    //   //   });
-    //   // });
+    if (typeof window !== 'undefined') {
+      loadData(dispatch);
+    }
   });
 
   return (
@@ -93,13 +62,13 @@ function WrappedApp() {
 export default function App() {
   return (
     <StrictMode>
-      <div id='canvas-container' className='overflow-hidden'>
-        <Provider store={store}>
+      <Provider store={store}>
+        <div id='canvas-container' className='overflow-hidden'>
           <LoadingProvider>
             <WrappedApp />
           </LoadingProvider>
-        </Provider>
-      </div>
+        </div>
+      </Provider>
     </StrictMode>
   );
 }
