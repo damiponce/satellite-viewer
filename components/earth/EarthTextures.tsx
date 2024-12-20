@@ -46,7 +46,7 @@ export default function EarthTextures() {
   const [albedoMap, setAlbedoMap] = useState<THREE.CompressedTexture>();
   const [bumpMap, setBumpMap] = useState<THREE.CompressedTexture>();
   const [waterMap, setWaterMap] = useState<THREE.CompressedTexture>();
-  // const [lightsMap, setLightsMap] = useState<THREE.CompressedTexture>();
+  const [lightsMap, setLightsMap] = useState<THREE.CompressedTexture>();
 
   useEffect(() => {
     async function loadTextures() {
@@ -75,11 +75,14 @@ export default function EarthTextures() {
           return t;
         });
       });
-      // await ktx2loader
-      //   .loadAsync('/earth/earth_lights_c.ktx2')
-      //   .then((texture) => {
-      //     setLightsMap(texture);
-      //   });
+      await ktx2loader.loadAsync('/earth/earth_lights_c.ktx2').then((t) => {
+        setLightsMap(() => {
+          if (!t) return t;
+          t.wrapT = THREE.RepeatWrapping;
+          t.repeat.y = -1;
+          return t;
+        });
+      });
       completeLoadingTask('earth-textures');
     }
     loadTextures();
@@ -94,8 +97,9 @@ export default function EarthTextures() {
       roughnessMap={waterMap}
       metalness={0.2}
       metalnessMap={waterMap}
-      // emissiveMap={lightsMap}
-      // emissive={new THREE.Color(0xffff88)}
+      emissiveMap={lightsMap}
+      emissiveIntensity={0.5}
+      emissive={new THREE.Color(0xffff88)}
       onBeforeCompile={earthShaderOBC}
     />
   );

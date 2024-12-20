@@ -44,7 +44,6 @@ import { update } from '@/lib/settings/settingsSlice';
 import {
   addRawSatellite,
   removeSatellite,
-  setVisible,
 } from '@/lib/satellites/satelliteSlice';
 
 import { Input } from '../ui/input';
@@ -134,7 +133,7 @@ export default function Overlay({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
   const dispatch = useDispatch();
 
-  const infoSat = satellites.find((s) => s.noradId === selections.info.id);
+  const infoSat = satellites.find((s) => s.object_id === selections.info.id);
 
   const [loaded, setLoaded] = useState(false);
   setTimeout(() => {
@@ -491,7 +490,7 @@ export default function Overlay({ timer }: { timer: any }) {
                       <>
                         <div className='space-y-2 w-fit mx-auto'>
                           <h4 className='font-medium leading-none text-center'>
-                            {infoSat?.name}
+                            {infoSat?.object_name}
                           </h4>
                         </div>
                         <div className='w-fit mx-auto'>
@@ -529,9 +528,11 @@ export default function Overlay({ timer }: { timer: any }) {
                           </Table>
                         </div>
                         <code className='text-xs text-muted-foreground w-full overflow-scroll'>
-                          {infoSat?.tle1}
+                          {infoSat?.tle_line0}
                           <br />
-                          {infoSat?.tle2}
+                          {infoSat?.tle_line1}
+                          <br />
+                          {infoSat?.tle_line2}
                         </code>
                       </>
                     )}
@@ -585,10 +586,10 @@ const SatList = ({
     {satellites.length > 0 ? (
       satellites.map((satellite) => (
         <div
-          key={`sat-list-${satellite.noradId}`}
+          key={`sat-list-${satellite.object_id}`}
           className='flex flex-row h-5 items-center '
         >
-          <Checkbox
+          {/* <Checkbox
             className='h-5 w-5 '
             checked={satellite.visible}
             onCheckedChange={() => {
@@ -599,12 +600,12 @@ const SatList = ({
                 }),
               );
             }}
-          />
+          /> */}
           <Label
             className='font-normal mx-2 mr-6 w-full _flex _flex-row _items-center'
             htmlFor='airplane-mode'
           >
-            {satellite.name}
+            {satellite.object_name}
             <span className='ml-[0.3rem] text-[0.6rem] font-semibold text-muted-foreground'>
               {false && (
                 <span className='text-[0.5rem]'>
@@ -612,7 +613,7 @@ const SatList = ({
                   <br />
                 </span>
               )}
-              {satellite.noradId}
+              {satellite.object_id}
             </span>
           </Label>
 
@@ -622,7 +623,7 @@ const SatList = ({
             onClick={() => {
               dispatch(
                 toggleInfo({
-                  id: satellite.noradId,
+                  id: satellite.object_id,
                 }),
               );
             }}
@@ -630,7 +631,7 @@ const SatList = ({
             <Info
               className={cn(
                 'h-4 w-4',
-                selections.info.id === satellite.noradId
+                selections.info.id === satellite.object_id
                   ? ''
                   : 'stroke-muted-foreground/50',
               )}
@@ -640,11 +641,11 @@ const SatList = ({
           <Button
             variant='secondary'
             className='h-5 aspect-square bg-transparent p-0 ml-1'
-            disabled={!satellite.visible}
+            // disabled={!satellite.visible}
             onClick={() => {
               dispatch(
                 toggleFocused({
-                  id: satellite.noradId,
+                  id: satellite.object_id,
                 }),
               );
             }}
@@ -652,7 +653,7 @@ const SatList = ({
             <ScanEye
               className={cn(
                 'h-4 w-4',
-                selections.focused.id === satellite.noradId
+                selections.focused.id === satellite.object_id
                   ? ''
                   : 'stroke-muted-foreground/50',
               )}
@@ -665,11 +666,11 @@ const SatList = ({
             onClick={() => {
               const satClone = cloneDeep(satellite);
               const satIndex = satellites.findIndex(
-                (s) => s.noradId === satellite.noradId,
+                (s) => s.object_id === satellite.object_id,
               );
               dispatch(
                 removeSatellite({
-                  noradId: satellite.noradId,
+                  object_id: satellite.object_id,
                 }),
               );
               toast('Satellite removed', {
@@ -677,7 +678,7 @@ const SatList = ({
                   label: 'Undo',
                   onClick: () => {
                     if (
-                      satellites.findIndex((s) => s.noradId === satIndex) > -1
+                      satellites.findIndex((s) => s.object_id === satIndex) > -1
                     )
                       return;
                     dispatch(

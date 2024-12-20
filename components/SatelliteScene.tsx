@@ -8,7 +8,6 @@ import { Bvh, PerspectiveCamera, StatsGl, useTexture } from '@react-three/drei';
 
 import Earth from './earth/Earth';
 import Helpers from './Helpers';
-import Satellite from './Satellite';
 import Sun from './Sun';
 import EarthControls from './EarthControls';
 import SatelliteDots from './SatelliteDots';
