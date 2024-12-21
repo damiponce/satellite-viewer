@@ -17,6 +17,7 @@ import { Canvas } from '@react-three/fiber';
 import { loadData } from '@/lib/loadData';
 import TimeHandlerThree from '@/components/overlay/TimeHandlerThree';
 import TimelineThree from '@/components/overlay/TimelineThree';
+import { Bloom, EffectComposer } from '@react-three/postprocessing';
 
 function WrappedApp() {
   // const [, forceUpdate] = React.useReducer((x) => -x, 0);

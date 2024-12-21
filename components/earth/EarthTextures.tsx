@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useReducer, useState } from 'react';
 import * as THREE from 'three';
 import { useLoading } from '@/components/LoadingScreen';
 import { useThree } from '@react-three/fiber';
@@ -42,6 +42,7 @@ export default function EarthTextures() {
 
   // const loader = useLoader(KTX2Loader, '/earth/earth_albedo_c.ktx2');
 
+  const materialRef = React.useRef<THREE.MeshStandardMaterial>(null);
   const [albedoMap, setAlbedoMap] = useState<THREE.CompressedTexture>();
   const [bumpMap, setBumpMap] = useState<THREE.CompressedTexture>();
   const [waterMap, setWaterMap] = useState<THREE.CompressedTexture>();
@@ -82,6 +83,7 @@ export default function EarthTextures() {
           return t;
         });
       });
+      if (materialRef.current) materialRef.current.needsUpdate = true;
       completeLoadingTask('earth-textures');
     }
     loadTextures();
@@ -89,6 +91,7 @@ export default function EarthTextures() {
 
   return (
     <meshStandardMaterial
+      ref={materialRef}
       map={albedoMap}
       bumpMap={bumpMap}
       bumpScale={2}
@@ -96,7 +99,7 @@ export default function EarthTextures() {
       metalness={0.2}
       metalnessMap={waterMap}
       emissiveMap={lightsMap}
-      emissiveIntensity={0.5}
+      emissiveIntensity={1}
       emissive={new THREE.Color(0xffff88)}
       onBeforeCompile={earthShaderOBC}
     />
@@ -169,7 +172,7 @@ function earthShaderOBC(shader: any) {
 
          emissiveColor *= 1.0 - smoothstep(-0.15, 0.1, dot(normal, directionalLights[0].direction));
 
-         totalEmissiveRadiance *= emissiveColor.rgb;
+         totalEmissiveRadiance *= emissiveColor.r;
 
        #endif
 

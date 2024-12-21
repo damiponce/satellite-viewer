@@ -74,7 +74,7 @@ function Earth() {
   return (
     <Suspense fallback={null}>
       <group dispose={null}>
-        <mesh>
+        <mesh renderOrder={0}>
           <sphereGeometry args={[EARTH_MEAN_RADIUS, 100, 100]} />
           <EarthTextures />
         </mesh>

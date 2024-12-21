@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { PointMaterial } from '@react-three/drei';
 
 import { useLoading } from './LoadingScreen';
+import { useFrame } from '@react-three/fiber';
 
 export default function Satellite({
   data,
@@ -13,6 +14,7 @@ export default function Satellite({
   timer: any;
 }) {
   const [, forceUpdate] = useReducer((x) => -x, 0);
+  const pointMaterialRef = useRef<THREE.PointsMaterial>(null);
 
   const { completeLoadingTask } = useLoading();
 
@@ -90,9 +92,34 @@ export default function Satellite({
     pointsRef.current.matrixWorldNeedsUpdate = true;
   }
 
+  useFrame(({ camera }) => {
+    if (!pointMaterialRef.current) return;
+    const distance = camera.position.length();
+    // if (distance < 100) {
+    //   pointMaterialRef.current.size = 2;
+    // } else if (distance < 200) {
+    //   pointMaterialRef.current.size = 1.5;
+    // } else {
+    //   pointMaterialRef.current.size = 1;
+    // }
+    const minSize = 1; // Size when distance >= 200
+    const maxSize = 2; // Size when distance <= 100
+    const minDistance = 100; // Start of interpolation range
+    const maxDistance = 200; // End of interpolation range
+
+    const size =
+      maxSize -
+      ((distance - minDistance) / (maxDistance - minDistance)) *
+        (maxSize - minSize);
+
+    // Clamp the size between minSize and maxSize to ensure smooth interpolation
+    pointMaterialRef.current.size = Math.max(minSize, Math.min(maxSize, size));
+  });
+
   return (
     <points ref={pointsRef}>
       <PointMaterial
+        ref={pointMaterialRef}
         attach='material'
         transparent
         vertexColors
