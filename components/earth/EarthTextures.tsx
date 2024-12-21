@@ -1,8 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import * as THREE from 'three';
-import { useKTX2, useTexture } from '@react-three/drei';
 import { useLoading } from '@/components/LoadingScreen';
-import { useLoader, useThree } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 import { KTX2Loader } from 'three-stdlib';
 
 export default function EarthTextures() {
@@ -91,7 +90,6 @@ export default function EarthTextures() {
   return (
     <meshStandardMaterial
       map={albedoMap}
-      color={new THREE.Color(0xffffff)}
       bumpMap={bumpMap}
       bumpScale={2}
       roughnessMap={waterMap}

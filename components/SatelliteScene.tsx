@@ -47,23 +47,11 @@ export default function SatelliteScene({ timer }: { timer: any }) {
       <Sun timer={timer} />
       <EarthControls />
       <group rotation={[Math.PI / 2, 0, 0]}>
-        {/* <Earth textures={textures} /> */}
-        {/* <Suspense fallback={null}> */}
         <Earth />
-        {/* </Suspense> */}
         <Helpers />
       </group>
-      {/* {satellites.map((satellite) => (
-        <Satellite
-          key={`satellite-${satellite.noradId}`}
-          data={satellite}
-          timer={timer}
-        />
-      ))} */}
 
       <SatelliteDots data={satTles} timer={timer} />
-
-      {false && <StatsGl />}
     </Bvh>
   );
 }

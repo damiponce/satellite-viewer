@@ -1,5 +1,5 @@
 'use client';
-import React, { StrictMode, Suspense } from 'react';
+import React, { StrictMode } from 'react';
 import * as THREE from 'three';
 
 import { store } from '@/lib/redux/store';
@@ -14,10 +14,9 @@ import WelcomeDialog from '@/components/AlertDIalog';
 import { LoadingProvider } from '@/components/LoadingScreen';
 
 import { Canvas } from '@react-three/fiber';
-import { getDB, isDBOld, updateDB } from '@/lib/actions/gp';
-import { countJsonData, loadJsonData, saveJsonData } from '@/lib/idb/storage';
-import { addSatellitesFromDB } from '@/lib/satellites/satelliteSlice';
 import { loadData } from '@/lib/loadData';
+import TimeHandlerThree from '@/components/overlay/TimeHandlerThree';
+import TimelineThree from '@/components/overlay/TimelineThree';
 
 function WrappedApp() {
   // const [, forceUpdate] = React.useReducer((x) => -x, 0);
@@ -45,8 +44,10 @@ function WrappedApp() {
       {process.env.NODE_ENV !== 'development' && <WelcomeDialog />}
       <Canvas dpr={[1, 3]} gl={{}}>
         <SatelliteScene timer={timer} />
+        <TimeHandlerThree timer={timer} />
+        {/* <TimelineThree timer={timer} /> */}
       </Canvas>
-      {/* <Overlay timer={timer} /> */}
+      <Overlay timer={timer} />
       <Timekeeper
         deltaMs={10}
         set={(t) => {

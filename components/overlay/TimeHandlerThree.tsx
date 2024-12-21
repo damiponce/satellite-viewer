@@ -11,6 +11,7 @@ import { Button } from '../ui/button';
 import { FastForward, Pause, Play, TimerReset } from 'lucide-react';
 import { useFrame } from '@react-three/fiber';
 import { useAnimationFrame } from './TimelineFunctions';
+import { Html } from '@react-three/drei';
 
 export default function TimeHandler({
   className,
@@ -22,63 +23,102 @@ export default function TimeHandler({
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
 
+  const timeScaleTextRef = React.useRef<HTMLHeadingElement>(null);
+  const dateTextRef = React.useRef<HTMLHeadingElement>(null);
+  const timeTextRef = React.useRef<HTMLHeadingElement>(null);
+
+  useFrame(() => {
+    if (timeScaleTextRef.current)
+      timeScaleTextRef.current.textContent = `x${timeParams.timeScale.toFixed(0)}`;
+    if (dateTextRef.current)
+      dateTextRef.current.textContent = moment(timer.current.now())
+        .utc()
+        .format('ll');
+    if (timeTextRef.current)
+      timeTextRef.current.textContent = moment(timer.current.now())
+        .utc()
+        .format('HH:mm:ss');
+  });
+
   return (
-    <div
-      className={cn(
-        className,
-        'pointer-evens-auto aspect-square w-[150px] _bg-red-500/50 flex flex-col shrink-0 p-3 border-t-2 border-r-2 rounded-tr-lg [&>*]:my-1 bg-background/50 backdrop-blur-lg',
-        // '[&>*]:border-red-500 [&>*]:border-[1px] [&>*]:border-dashed',
-      )}
+    <Html
+      fullscreen
+      zIndexRange={[1000, 1001]}
+      className='relative w-full flex flex-row pointer-events-none *:pointer-events-auto'
     >
-      <div className='w-full _flex-1 _bg-blue-500/50 flex justify-center relative'>
-        <CustomSlider
-          defaultValue={[1]}
-          min={1}
-          max={100}
-          value={[timeParams.sliderTimeScale]}
-          onValueChange={(value) => {
-            dispatch(setTimeScale({ timeScale: value[0], isFromSlider: true }));
-          }}
-        />
-      </div>
-      {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
-      {/* <TextInfoTwo
+      <div
+        onPointerDown={(e) => {
+          e.stopPropagation();
+        }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+        }}
+        onWheel={(e) => {
+          e.stopPropagation();
+        }}
+        className={cn(
+          className,
+          'absolute bottom-0 left-0 pointer-evens-auto aspect-square w-[150px] _bg-red-500/50 flex flex-col shrink-0 p-3 border-t-2 border-r-2 rounded-tr-lg [&>*]:my-1 bg-background/50 backdrop-blur-lg',
+          // '[&>*]:border-red-500 [&>*]:border-[1px] [&>*]:border-dashed',
+        )}
+      >
+        <div className='w-full _flex-1 _bg-blue-500/50 flex justify-center relative'>
+          <CustomSlider
+            defaultValue={[1]}
+            min={1}
+            max={100}
+            value={[timeParams.sliderTimeScale]}
+            onValueChange={(value) => {
+              dispatch(
+                setTimeScale({ timeScale: value[0], isFromSlider: true }),
+              );
+            }}
+          />
+        </div>
+        {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
+        {/* <TextInfoTwo
         timeScale={timeParams.timeScale.toFixed(0)}
         date={moment(timer.current.now()).utc().format('ll')}
         time={moment(timer.current.now()).utc().format('HH:mm:ss')}
       /> */}
-      <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            timer.current.config({ time: Date.now() });
-            dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
-          }}
-        >
-          <TimerReset className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
-        <div className='grow' />
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            dispatch(setPaused({ paused: true }));
-          }}
-        >
-          <Pause className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            dispatch(setPaused({ paused: false }));
-          }}
-        >
-          <Play className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
+        <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
+          <h2 ref={timeScaleTextRef} />
+          <h2 ref={dateTextRef} />
+          <h2 ref={timeTextRef} />
+        </div>
+        <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
+          <Button
+            variant='outline'
+            className='aspect-square p-0'
+            onClick={() => {
+              timer.current.config({ time: Date.now() });
+              dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
+            }}
+          >
+            <TimerReset className='h-5 w-5' strokeWidth={1.5} />
+          </Button>
+          <div className='grow' />
+          <Button
+            variant='outline'
+            className='aspect-square p-0'
+            onClick={() => {
+              dispatch(setPaused({ paused: true }));
+            }}
+          >
+            <Pause className='h-5 w-5' strokeWidth={1.5} />
+          </Button>
+          <Button
+            variant='outline'
+            className='aspect-square p-0'
+            onClick={() => {
+              dispatch(setPaused({ paused: false }));
+            }}
+          >
+            <Play className='h-5 w-5' strokeWidth={1.5} />
+          </Button>
+        </div>
       </div>
-    </div>
+    </Html>
   );
 }
 

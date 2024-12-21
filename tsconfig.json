@@ -35,5 +35,5 @@
     "*.glsl",
     "custom.d.ts"
   ],
-  "exclude": ["node_modules", "**/event-emitter/**/*"]
+  "exclude": ["node_modules"]
 }

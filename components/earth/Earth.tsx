@@ -1,20 +1,8 @@
 import { EARTH_MEAN_RADIUS } from '@/utils/constants';
 
-import React, { Suspense, useEffect, useLayoutEffect, useState } from 'react';
+import { Suspense } from 'react';
 import * as THREE from 'three';
-import { extend, useLoader } from '@react-three/fiber';
-import { Environment, shaderMaterial, useTexture } from '@react-three/drei';
 
-import CustomShaderMaterial from 'three-custom-shader-material';
-import Dots from '../Dots';
-import { analyzeImage, loadImage } from '@/utils/map-dots';
-
-import { loadTextureSync } from '@/lib/utils';
-import Albedo from '@/public/earth/Albedo.jpg';
-import Bump from '@/public/earth/Bump.jpg';
-import Clouds from '@/public/earth/Clouds.png';
-import Ocean from '@/public/earth/Ocean.png';
-import NightLights from '@/public/earth/night_lights_modified.png';
 import EarthTextures from './EarthTextures';
 
 const fragmentShader = `
@@ -88,9 +76,7 @@ function Earth() {
       <group dispose={null}>
         <mesh>
           <sphereGeometry args={[EARTH_MEAN_RADIUS, 100, 100]} />
-          {/* <Suspense fallback={<meshBasicMaterial color='' />}> */}
           <EarthTextures />
-          {/* </Suspense> */}
         </mesh>
         <mesh renderOrder={1}>
           <sphereGeometry args={[EARTH_MEAN_RADIUS * 1.2, 100, 100]} />

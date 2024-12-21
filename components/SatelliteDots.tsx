@@ -82,6 +82,7 @@ export default function Satellite({
 
     pointsRef.current.geometry.setAttribute(
       'color',
+      // new THREE.BufferAttribute(arr, 3),
       new THREE.BufferAttribute(new Float32Array(arr.length).fill(1), 3),
     );
     pointsRef.current.geometry.getAttribute('color').needsUpdate = true;
@@ -110,7 +111,7 @@ export default function Satellite({
         <bufferAttribute
           attach='attributes-color'
           count={0}
-          array={new Float32Array(0)}
+          array={new Float32Array(1)}
           itemSize={3}
         />
       </bufferGeometry>

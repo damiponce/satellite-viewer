@@ -30,6 +30,8 @@
     "@react-three/drei": "^9.120.4",
     "@react-three/fiber": "^8.17.10",
     "@react-three/postprocessing": "^2.16.3",
+    "@react-three/uikit": "^0.8.4",
+    "@react-three/uikit-default": "^0.8.4",
     "@reduxjs/toolkit": "^2.5.0",
     "@types/lodash": "^4.17.13",
     "@types/react-redux": "^7.1.34",

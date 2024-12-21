@@ -5,12 +5,20 @@ import * as SliderPrimitive from '@radix-ui/react-slider';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/lib/redux/store';
 import { setPaused, setTime, setTimeScale } from '@/lib/time/timeSlice';
-import { Slider } from '../ui/slider';
 import moment from 'moment';
-import { Button } from '../ui/button';
 import { FastForward, Pause, Play, TimerReset } from 'lucide-react';
 import { useFrame } from '@react-three/fiber';
 import { useAnimationFrame } from './TimelineFunctions';
+import {
+  Container,
+  Fullscreen,
+  Text,
+  Icon,
+  Svg,
+  TextRef,
+} from '@react-three/uikit';
+import { Defaults, DialogAnchor, Slider } from '@react-three/uikit-default';
+import { Html } from '@react-three/drei';
 
 export default function TimeHandler({
   className,
@@ -22,63 +30,77 @@ export default function TimeHandler({
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
 
+  const timeScaleTextRef = React.useRef<string>('');
+  const dateTextRef = React.useRef<string>('');
+  const timeTextRef = React.useRef<string>('');
+
+  const h2Ref = React.useRef<HTMLHeadingElement>(null);
+
+  useFrame(() => {
+    if (h2Ref.current)
+      h2Ref.current.textContent = moment(timer.current.now())
+        .utc()
+        .format('HH:mm:ss');
+    // timeScaleTextRef.current = `x${timeParams.timeScale}`;
+    // dateTextRef.current = moment(timer.current.now()).utc().format('ll');
+    // timeTextRef.current = moment(timer.current.now()).utc().format('HH:mm:ss');
+  });
+
   return (
-    <div
-      className={cn(
-        className,
-        'pointer-evens-auto aspect-square w-[150px] _bg-red-500/50 flex flex-col shrink-0 p-3 border-t-2 border-r-2 rounded-tr-lg [&>*]:my-1 bg-background/50 backdrop-blur-lg',
-        // '[&>*]:border-red-500 [&>*]:border-[1px] [&>*]:border-dashed',
-      )}
-    >
-      <div className='w-full _flex-1 _bg-blue-500/50 flex justify-center relative'>
-        <CustomSlider
-          defaultValue={[1]}
-          min={1}
-          max={100}
-          value={[timeParams.sliderTimeScale]}
-          onValueChange={(value) => {
-            dispatch(setTimeScale({ timeScale: value[0], isFromSlider: true }));
-          }}
-        />
-      </div>
-      {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
-      {/* <TextInfoTwo
-        timeScale={timeParams.timeScale.toFixed(0)}
-        date={moment(timer.current.now()).utc().format('ll')}
-        time={moment(timer.current.now()).utc().format('HH:mm:ss')}
-      /> */}
-      <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            timer.current.config({ time: Date.now() });
-            dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
-          }}
+    <Fullscreen inset={0} positionType={'relative'}>
+      <Container
+        positionType={'absolute'}
+        aspectRatio={1}
+        width={150}
+        height={150}
+        flexDirection='column'
+        positionLeft={0}
+        positionBottom={0}
+        backgroundColor='#000'
+      >
+        <Container
+          width='100%'
+          flexDirection='column'
+          justifyContent={'center'}
+          alignItems={'center'}
         >
-          <TimerReset className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
-        <div className='grow' />
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            dispatch(setPaused({ paused: true }));
-          }}
+          <Html className='w-full'>
+            <CustomSlider
+              defaultValue={[1]}
+              min={1}
+              max={100}
+              value={[timeParams.sliderTimeScale]}
+              onValueChange={(value) => {
+                dispatch(
+                  setTimeScale({ timeScale: value[0], isFromSlider: true }),
+                );
+              }}
+            />
+          </Html>
+          {/* <Slider
+            defaultValue={1}
+            min={1}
+            max={100}
+            value={timeParams.sliderTimeScale}
+            onValueChange={(value) => {
+              dispatch(setTimeScale({ timeScale: value, isFromSlider: true }));
+            }}
+          /> */}
+        </Container>
+        <Container
+          flexDirection='column'
+          justifyContent={'center'}
+          alignItems={'center'}
         >
-          <Pause className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
-        <Button
-          variant='outline'
-          className='aspect-square p-0'
-          onClick={() => {
-            dispatch(setPaused({ paused: false }));
-          }}
-        >
-          <Play className='h-5 w-5' strokeWidth={1.5} />
-        </Button>
-      </div>
-    </div>
+          {/* <Text color='white'>{timeScaleTextRef.current}</Text>
+          <Text color='white'>{dateTextRef.current}</Text>
+          <Text color='white'>{timeTextRef.current}</Text> */}
+          <Html>
+            <h2 ref={h2Ref}></h2>
+          </Html>
+        </Container>
+      </Container>
+    </Fullscreen>
   );
 }
 
@@ -162,5 +184,3 @@ const CustomSlider = React.forwardRef<
     </SliderPrimitive.Thumb>
   </SliderPrimitive.Root>
 ));
-
-Slider.displayName = SliderPrimitive.Root.displayName;
