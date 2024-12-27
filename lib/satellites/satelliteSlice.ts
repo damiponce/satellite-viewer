@@ -129,6 +129,9 @@ export const satellitesSlice = createSlice({
 
       if (DEBUG) console.debug('AFTER ADDING STATE', state);
     },
+    emptySatellites: (state) => {
+      state.length = 0;
+    },
     removeSatellite: (state, action: PayloadAction<{ object_id: number }>) => {
       const index = state.findIndex(
         (satellite) => satellite.object_id === action.payload.object_id,
@@ -170,6 +173,7 @@ export const {
   addRawSatellite,
   addSatellite,
   addSatellitesFromDB,
+  emptySatellites,
   removeSatellite,
   // updateElement,
   // setVisible,

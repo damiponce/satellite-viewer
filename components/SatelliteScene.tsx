@@ -12,10 +12,18 @@ import Sun from './Sun';
 import EarthControls from './EarthControls';
 import SatelliteDots from './SatelliteDots';
 import { SatRec, twoline2satrec } from 'satellite.js';
+import {
+  addSatellitesFromDB,
+  emptySatellites,
+} from '@/lib/satellites/satelliteSlice';
+import { loadJsonData } from '@/lib/idb/storage';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
+  const groups = useSelector((state: RootState) => state.groups);
   const [satTles, setSatTles] = React.useState<string[]>([]);
+
+  const dispatch = useDispatch();
   // console.warn('SAT_CANVAS', satellites);
 
   // <Suspense fallback={<Loading />}>
@@ -24,10 +32,32 @@ export default function SatelliteScene({ timer }: { timer: any }) {
   useEffect(() => {
     setSatTles(
       satellites
-        .slice(0, satellites.length / 1)
+        // .slice(0, satellites.length / 1)
         .map((sat) => `${sat.tle_line0}\n${sat.tle_line1}\n${sat.tle_line2}`),
     );
   }, [satellites]);
+
+  useEffect(() => {
+    async function updateSatsFromGroups() {
+      dispatch(
+        addSatellitesFromDB(
+          (await loadJsonData('gp')).filter((sat) => {
+            return (
+              groups
+                .filter((g) => g.name_filter !== '' && g.enabled)
+                .find((g) => sat.object_name.includes(g.name_filter)) ||
+              (groups.find((g) => g.name_filter === '' && g.enabled) &&
+                !groups
+                  .filter((g) => g.name_filter !== '')
+                  .find((g) => sat.object_name.includes(g.name_filter)))
+            );
+          }),
+        ),
+      );
+    }
+
+    updateSatsFromGroups();
+  }, [groups]);
 
   return (
     <Bvh>
@@ -51,7 +81,7 @@ export default function SatelliteScene({ timer }: { timer: any }) {
         <Helpers />
       </group>
 
-      <SatelliteDots data={satTles} timer={timer} />
+      {satellites.length > 0 && <SatelliteDots data={satTles} timer={timer} />}
     </Bvh>
   );
 }

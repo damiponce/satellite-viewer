@@ -1,30 +1,37 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { addGroup, removeGroup, setGroup } from '@/lib/groups/groupSlice';
+import { loadJsonData } from '@/lib/idb/storage';
 import { RootState } from '@/lib/redux/store';
 import { SatellitesType } from '@/lib/satellites/satellite';
 import {
   addRawSatellite,
+  addSatellitesFromDB,
   removeSatellite,
 } from '@/lib/satellites/satelliteSlice';
 import { Dispatch, UnknownAction } from '@reduxjs/toolkit';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, update } from 'lodash';
 import { Plus, X } from 'lucide-react';
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
 export default function SatelliteListPanel() {
   const dispatch = useDispatch();
-  const satellites = useSelector((state: RootState) => state.satellites);
+  const groups = useSelector((state: RootState) => state.groups);
+  const [groupInput, setGroupInput] = React.useState<string>('');
 
   return (
     <div className='flex flex-col gap-4'>
-      <Tabs defaultValue='singles' className='min-w-[300px]'>
+      <Tabs defaultValue='groups' className='min-w-[200px]'>
         <TabsList className='grid w-full grid-cols-2 bg-muted/30 backdrop-blur-lg backdrop-brightness-150 '>
-          <TabsTrigger value='singles'>Singles</TabsTrigger>
           <TabsTrigger value='groups'>Groups</TabsTrigger>
+          <TabsTrigger value='singles' disabled>
+            Singles
+          </TabsTrigger>
         </TabsList>
         <TabsContent value='singles'>
           <div className='flex flex-row mb-4_'>
@@ -48,25 +55,62 @@ export default function SatelliteListPanel() {
           <div className='flex flex-row mb-4_'>
             <Input
               type='text'
-              className='rounded-tr-none rounded-br-none focus-visible:ring-1 border-r-0'
-              placeholder='NORAD ID, name, etc.'
-              disabled
+              className='rounded-tr-none rounded-br-none border-r-0 focus-visible:ring-1 focus-visible:z-10'
+              placeholder='NOAA, SAOCOM, etc.'
+              value={groupInput}
+              onChange={(e) => {
+                setGroupInput(e.currentTarget.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (
+                    groups.find(
+                      (g) =>
+                        g.name_filter === e.currentTarget.value.toUpperCase(),
+                    )
+                  ) {
+                    toast.warning('Group filter already exists.');
+                    setGroupInput('');
+                    return;
+                  }
+                  dispatch(
+                    addGroup({
+                      name: e.currentTarget.value,
+                      name_filter: e.currentTarget.value.toUpperCase(),
+                    }),
+                  );
+                  toast.success('Group filter added.');
+                  setGroupInput('');
+                }
+              }}
             />
             <Button
               type='submit'
-              className='aspect-square p-0 rounded-tl-none rounded-bl-none '
+              className='aspect-square p-0 rounded-tl-none rounded-bl-none focus-visible:ring-1 focus-visible:z-10'
               variant='outline'
-              disabled
+              onClick={() => {
+                if (
+                  groups.find((g) => g.name_filter === groupInput.toUpperCase())
+                ) {
+                  toast.warning('Group filter already exists.');
+                  setGroupInput('');
+                  return;
+                }
+                dispatch(
+                  addGroup({
+                    name: groupInput,
+                    name_filter: groupInput.toUpperCase(),
+                  }),
+                );
+                toast.success('Group filter added.');
+                setGroupInput('');
+              }}
             >
               <Plus className='h-5 w-5' />
             </Button>
           </div>
           <Suspense fallback={null}>
-            <SatList
-              satellites={satellites}
-              dispatch={dispatch}
-              // selections={selections}
-            />
+            <SatGroupList />
           </Suspense>
         </TabsContent>
       </Tabs>
@@ -74,23 +118,95 @@ export default function SatelliteListPanel() {
   );
 }
 
-const SatList = ({
-  satellites,
-  dispatch,
-  // selections,
-}: {
-  satellites: SatellitesType;
-  dispatch: Dispatch<UnknownAction>;
-  // selections: any;
-}) => (
-  <div className='flex flex-col flex-nowrap gap-4 max-h-[40vh] overflow-y-scroll'>
-    {satellites.length > 0 ? (
-      satellites.map((satellite) => (
-        <div
-          key={`sat-list-${satellite.object_id}`}
-          className='flex flex-row h-5 items-center '
-        >
-          {/* <Checkbox
+function SatGroupList() {
+  const dispatch = useDispatch();
+  const satellites = useSelector((state: RootState) => state.satellites);
+  const groups = useSelector((state: RootState) => state.groups);
+
+  return (
+    <div className='flex flex-col flex-nowrap pt-2 gap-0 max-h-[40vh] overflow-y-scroll'>
+      {groups.length > 0 ? (
+        groups.map((group) => (
+          <div
+            key={`sat-group-${group.name}`}
+            className='flex flex-row px-3 py-2 items-center cursor-pointer hover:bg-muted/50 rounded-md'
+            onClick={() => {
+              dispatch(
+                setGroup({
+                  name: group.name,
+                  enabled: !group.enabled,
+                }),
+              );
+            }}
+          >
+            <Checkbox className='h-5 w-5 ' checked={group.enabled} />
+            <Label className='font-medium mx-2 mr-6 w-full _flex _flex-row _items-center cursor-pointer'>
+              {group.name}
+            </Label>
+            {group.deleteable && (
+              <Button
+                variant='secondary'
+                className='h-5 aspect-square bg-transparent p-0 ml-1'
+                onClick={() => {
+                  // const groupsClone = cloneDeep(groups);
+                  const groupsIndex = groups.findIndex(
+                    (s) => s.name_filter === group.name_filter,
+                  );
+                  dispatch(
+                    removeGroup({
+                      name_filter: group.name_filter,
+                    }),
+                  );
+                  toast.info('Group filter removed', {
+                    action: {
+                      label: 'Undo',
+                      onClick: () => {
+                        // !!!!!!!!!!
+                        // if (
+                        //   groups.findIndex(
+                        //     (s) => s.name_filter === group.name_filter,
+                        //   ) > -1
+                        // )
+                        //   return;
+                        dispatch(
+                          addGroup({
+                            name: group.name,
+                            name_filter: group.name_filter,
+                            index: groupsIndex,
+                          }),
+                        );
+                      },
+                    },
+                  });
+                }}
+              >
+                <X className='h-4 w-4' strokeWidth={1.75} />
+              </Button>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className='text-sm text-muted-foreground/50 h-5'>
+          No group filters added.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SatList() {
+  const dispatch = useDispatch();
+  const satellites = useSelector((state: RootState) => state.satellites);
+
+  return (
+    <div className='flex flex-col flex-nowrap gap-4 max-h-[40vh] overflow-y-scroll'>
+      {satellites.length > 0 ? (
+        satellites.map((satellite) => (
+          <div
+            key={`sat-list-${satellite.object_id}`}
+            className='flex flex-row h-5 items-center '
+          >
+            {/* <Checkbox
             className='h-5 w-5 '
             checked={satellite.visible}
             onCheckedChange={() => {
@@ -102,23 +218,23 @@ const SatList = ({
               );
             }}
           /> */}
-          <Label
-            className='font-normal mx-2 mr-6 w-full _flex _flex-row _items-center'
-            htmlFor='airplane-mode'
-          >
-            {satellite.object_name}
-            <span className='ml-[0.3rem] text-[0.6rem] font-semibold text-muted-foreground'>
-              {false && (
-                <span className='text-[0.5rem]'>
-                  NORAD
-                  <br />
-                </span>
-              )}
-              {satellite.object_id}
-            </span>
-          </Label>
+            <Label
+              className='font-normal mx-2 mr-6 w-full _flex _flex-row _items-center'
+              htmlFor='airplane-mode'
+            >
+              {satellite.object_name}
+              <span className='ml-[0.3rem] text-[0.6rem] font-semibold text-muted-foreground'>
+                {false && (
+                  <span className='text-[0.5rem]'>
+                    NORAD
+                    <br />
+                  </span>
+                )}
+                {satellite.object_id}
+              </span>
+            </Label>
 
-          {/* <Button
+            {/* <Button
             variant='secondary'
             className='h-5 aspect-square bg-transparent p-0 ml-1'
             onClick={() => {
@@ -139,7 +255,7 @@ const SatList = ({
               strokeWidth={1.75}
             />
           </Button> */}
-          {/* <Button
+            {/* <Button
             variant='secondary'
             className='h-5 aspect-square bg-transparent p-0 ml-1'
             // disabled={!satellite.visible}
@@ -161,47 +277,49 @@ const SatList = ({
               strokeWidth={1.75}
             />
           </Button> */}
-          <Button
-            variant='secondary'
-            className='h-5 aspect-square bg-transparent p-0 ml-1'
-            onClick={() => {
-              const satClone = cloneDeep(satellite);
-              const satIndex = satellites.findIndex(
-                (s) => s.object_id === satellite.object_id,
-              );
-              dispatch(
-                removeSatellite({
-                  object_id: satellite.object_id,
-                }),
-              );
-              toast('Satellite removed', {
-                action: {
-                  label: 'Undo',
-                  onClick: () => {
-                    if (
-                      satellites.findIndex((s) => s.object_id === satIndex) > -1
-                    )
-                      return;
-                    dispatch(
-                      addRawSatellite({
-                        satellite: satClone,
-                        index: satIndex,
-                      }),
-                    );
+            <Button
+              variant='secondary'
+              className='h-5 aspect-square bg-transparent p-0 ml-1'
+              onClick={() => {
+                const satClone = cloneDeep(satellite);
+                const satIndex = satellites.findIndex(
+                  (s) => s.object_id === satellite.object_id,
+                );
+                dispatch(
+                  removeSatellite({
+                    object_id: satellite.object_id,
+                  }),
+                );
+                toast('Satellite removed', {
+                  action: {
+                    label: 'Undo',
+                    onClick: () => {
+                      if (
+                        satellites.findIndex((s) => s.object_id === satIndex) >
+                        -1
+                      )
+                        return;
+                      dispatch(
+                        addRawSatellite({
+                          satellite: satClone,
+                          index: satIndex,
+                        }),
+                      );
+                    },
                   },
-                },
-                closeButton: false,
-              });
-            }}
-          >
-            <X className='h-4 w-4' strokeWidth={1.75} />
-          </Button>
-        </div>
-      ))
-    ) : (
-      <p className='text-sm text-muted-foreground/50 h-5'>
-        No satellites added.
-      </p>
-    )}
-  </div>
-);
+                  closeButton: false,
+                });
+              }}
+            >
+              <X className='h-4 w-4' strokeWidth={1.75} />
+            </Button>
+          </div>
+        ))
+      ) : (
+        <p className='text-sm text-muted-foreground/50 h-5'>
+          No satellites added.
+        </p>
+      )}
+    </div>
+  );
+}

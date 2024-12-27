@@ -84,7 +84,7 @@ export default function TimeHandler({
         <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
           <h2 ref={timeScaleTextRef} />
           <h2 ref={dateTextRef} />
-          <h2 ref={timeTextRef} />
+          <h2 className='tabular-nums' ref={timeTextRef} />
         </div>
         <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
           <Button

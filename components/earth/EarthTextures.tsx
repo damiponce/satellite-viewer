@@ -83,11 +83,18 @@ export default function EarthTextures() {
           return t;
         });
       });
-      if (materialRef.current) materialRef.current.needsUpdate = true;
+      // if (materialRef.current) materialRef.current.needsUpdate = true;
       completeLoadingTask('earth-textures');
     }
+
     loadTextures();
   }, []);
+
+  useEffect(() => {
+    if (albedoMap && bumpMap && waterMap && lightsMap) {
+      if (materialRef.current) materialRef.current.needsUpdate = true;
+    }
+  }, [albedoMap, bumpMap, waterMap, lightsMap]);
 
   return (
     <meshStandardMaterial
