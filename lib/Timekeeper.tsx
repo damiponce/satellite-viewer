@@ -17,7 +17,7 @@ export default function Timekeeper({
   deltaMs: number;
   set?: (timer: any) => void;
 }) {
-  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
 

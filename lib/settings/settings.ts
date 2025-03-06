@@ -36,21 +36,24 @@ const settings: Settings = {
     },
     label: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Label',
       tooltip: 'Show label',
+      disabled: true,
     },
     orbitEci: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Orbit (ECI)',
       tooltip: 'Show ECI orbit',
+      disabled: true,
     },
     orbitEcef: {
       type: 'switch',
-      value: true,
+      value: false,
       label: 'Orbit track',
       tooltip: 'Show orbit track',
+      disabled: true,
     },
     groundTrack: {
       type: 'switch',
@@ -63,16 +66,16 @@ const settings: Settings = {
   map: {
     real: {
       type: 'radio',
-      value: false,
+      value: true,
       label: 'Real',
       tooltip: 'Use satellite view [WIP]',
-      disabled: true,
     },
     dots: {
       type: 'radio',
-      value: true,
+      value: false,
       label: 'Dots',
       tooltip: 'Use dots view',
+      disabled: true,
     },
   },
   camera: {

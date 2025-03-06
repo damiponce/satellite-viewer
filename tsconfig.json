@@ -24,14 +24,16 @@
     },
     "types": ["webpack-env", "jest"],
     "allowImportingTsExtensions": true,
-    "maxNodeModuleJsDepth": 3
+    "maxNodeModuleJsDepth": 0, // !! NOT IDEAL
+    "noImplicitAny": false
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "*.glsl"
+    "*.glsl",
+    "custom.d.ts"
   ],
   "exclude": ["node_modules"]
 }

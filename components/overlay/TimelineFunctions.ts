@@ -6,7 +6,7 @@ export function dtp(p: number) {
 
 export function subdivide(n: number, start: number, end: number): number[] {
   let step = (end - start) / (n + 1);
-  let result = [];
+  let result: number[] = [];
   for (let i = 1; i <= n; i++) {
     result.push(start + step * i);
   }

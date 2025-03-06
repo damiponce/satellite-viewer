@@ -1,9 +1,9 @@
 'use client';
-import React, { StrictMode, Suspense, useLayoutEffect } from 'react';
+import React, { StrictMode } from 'react';
 import * as THREE from 'three';
 
 import { store } from '@/lib/redux/store';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 
 import Overlay from '@/components/overlay/Overlay';
 import SatelliteScene from '@/components/SatelliteScene';
@@ -11,12 +11,18 @@ import SatelliteScene from '@/components/SatelliteScene';
 import hypertimer from 'hypertimer';
 import Timekeeper from '@/lib/Timekeeper';
 import WelcomeDialog from '@/components/AlertDIalog';
-import Loading from '@/components/overlay/Loading';
+import { LoadingProvider } from '@/components/LoadingScreen';
 
 import { Canvas } from '@react-three/fiber';
+import { loadData } from '@/lib/loadData';
+import TimeHandlerThree from '@/components/overlay/TimeHandlerThree';
+import TimelineThree from '@/components/overlay/TimelineThree';
+import { Bloom, EffectComposer } from '@react-three/postprocessing';
 
-export default function App() {
-  // const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+function WrappedApp() {
+  // const [, forceUpdate] = React.useReducer((x) => -x, 0);
+
+  const dispatch = useDispatch();
 
   const timer = React.useRef(
     hypertimer({
@@ -26,30 +32,45 @@ export default function App() {
     }),
   );
 
-  useLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     THREE.Object3D.DEFAULT_UP = new THREE.Vector3(0, 0, 1);
-  }, []);
+    if (typeof window !== 'undefined') {
+      loadData(dispatch);
+    }
+  });
 
   return (
+    // <Suspense fallback={<Loading />}>
+    <>
+      {process.env.NODE_ENV !== 'development' && <WelcomeDialog />}
+      <Canvas dpr={[1, 3]} gl={{}}>
+        <SatelliteScene timer={timer} />
+        <TimeHandlerThree timer={timer} />
+        {/* <TimelineThree timer={timer} /> */}
+      </Canvas>
+      <Overlay timer={timer} />
+      <Timekeeper
+        deltaMs={10}
+        set={(t) => {
+          timer.current = t;
+          // forceUpdate();
+        }}
+      />
+    </>
+    // </Suspense>
+  );
+}
+
+export default function App() {
+  return (
     <StrictMode>
-      <div id='canvas-container' className='overflow-hidden'>
-        <Provider store={store}>
-          <Suspense fallback={<Loading />}>
-            {process.env.NODE_ENV !== 'development' && <WelcomeDialog />}
-            <Canvas dpr={[1, 2]}>
-              <SatelliteScene timer={timer} />
-            </Canvas>
-            <Overlay timer={timer} />
-            <Timekeeper
-              deltaMs={10}
-              set={(t) => {
-                timer.current = t;
-                // forceUpdate();
-              }}
-            />
-          </Suspense>
-        </Provider>
-      </div>
+      <Provider store={store}>
+        <div id='canvas-container' className='overflow-hidden'>
+          <LoadingProvider>
+            <WrappedApp />
+          </LoadingProvider>
+        </div>
+      </Provider>
     </StrictMode>
   );
 }

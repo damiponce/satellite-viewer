@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import settingsReducer from '@/lib/settings/settingsSlice';
 import satelliteReducer from '@/lib/satellites/satelliteSlice';
+import groupReducer from '@/lib/groups/groupSlice';
 import timeReducer from '@/lib/time/timeSlice';
 import selectionsReducer from '../selections/selectionsSlice';
 
@@ -9,8 +10,11 @@ export const store = configureStore({
     settings: settingsReducer,
     selections: selectionsReducer,
     satellites: satelliteReducer,
+    groups: groupReducer,
     time: timeReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }),
 });
 
 if (process.env.NODE_ENV !== 'production' && module.hot) {

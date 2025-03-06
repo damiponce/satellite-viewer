@@ -27,7 +27,7 @@ export default function Timeline({
   className?: string;
   timer: any;
 }) {
-  const [, forceUpdate] = React.useReducer((x) => x + 1, 0);
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
 
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();

@@ -22,11 +22,6 @@ export default function TimeHandler({
   const timeParams = useSelector((state: RootState) => state.time);
   const dispatch = useDispatch();
 
-  const [, forceUpdate] = React.useReducer((x) => -x, 0);
-  useAnimationFrame(() => {
-    forceUpdate();
-  });
-
   return (
     <div
       className={cn(
@@ -46,13 +41,12 @@ export default function TimeHandler({
           }}
         />
       </div>
-      <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
-        <h2>x{timeParams.timeScale.toFixed(0)}</h2>
-        <h2>{moment(timer.current.now()).utc().format('ll')}</h2>
-        <h2 className='tabular-nums'>
-          {moment(timer.current.now()).utc().format('HH:mm:ss')} UTC
-        </h2>
-      </div>
+      {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
+      {/* <TextInfoTwo
+        timeScale={timeParams.timeScale.toFixed(0)}
+        date={moment(timer.current.now()).utc().format('ll')}
+        time={moment(timer.current.now()).utc().format('HH:mm:ss')}
+      /> */}
       <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
         <Button
           variant='outline'
@@ -87,6 +81,47 @@ export default function TimeHandler({
     </div>
   );
 }
+
+const TextInfoTwo: React.FC<{
+  timeScale: number | string;
+  date: string;
+  time: string;
+}> = ({ timeScale, date, time }) => {
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
+
+  useAnimationFrame(() => {
+    forceUpdate();
+  });
+
+  return (
+    <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
+      <h2>x{timeScale}</h2>
+      <h2>{date}</h2>
+      <h2 className='tabular-nums'>{time} UTC</h2>
+    </div>
+  );
+};
+
+const TextInfo: React.FC<{
+  timeScale: number | string;
+  timer: any;
+}> = ({ timeScale, timer }) => {
+  const [, forceUpdate] = React.useReducer((x) => -x, 0);
+
+  useAnimationFrame(() => {
+    forceUpdate();
+  });
+
+  return (
+    <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
+      <h2>x{timeScale}</h2>
+      <h2>{moment(timer.current.now()).utc().format('ll')}</h2>
+      <h2 className='tabular-nums'>
+        {moment(timer.current.now()).utc().format('HH:mm:ss')} UTC
+      </h2>
+    </div>
+  );
+};
 
 const CustomSlider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,

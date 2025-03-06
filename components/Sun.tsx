@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 
 import * as satellite from 'satellite.js';
@@ -15,6 +15,7 @@ import {
 const SunCalc = require('suncalc');
 
 export default function Sun({ timer }: { timer: any }) {
+  const sunRef = useRef<THREE.DirectionalLight>(null);
   const [sunCartesian, setSunCartesian] = React.useState(new THREE.Vector3());
 
   useFrame(() => {
@@ -24,8 +25,13 @@ export default function Sun({ timer }: { timer: any }) {
       latitude: sun_geodetic.altitude,
       height: 0,
     });
-    setSunCartesian(
-      new THREE.Vector3(sun_cartesian.x, sun_cartesian.y, sun_cartesian.z),
+    // setSunCartesian(
+    //   new THREE.Vector3(sun_cartesian.x, sun_cartesian.y, sun_cartesian.z),
+    // );
+    sunRef.current?.position.set(
+      sun_cartesian.x,
+      sun_cartesian.y,
+      sun_cartesian.z,
     );
 
     // console.log('SUN', sun_geodetic, sun_cartesian);
@@ -33,7 +39,7 @@ export default function Sun({ timer }: { timer: any }) {
 
   return (
     <>
-      <directionalLight color='white' position={sunCartesian} intensity={5} />
+      <directionalLight color='white' ref={sunRef} intensity={2} />
       {/* <mesh position={sunCartesian.normalize().multiplyScalar(5000)}>
         <sphereGeometry args={[10, 8, 8]} />
         <meshBasicMaterial color='yellow' />
