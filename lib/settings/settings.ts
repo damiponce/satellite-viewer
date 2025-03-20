@@ -107,6 +107,13 @@ const settings: Settings = {
       tooltip: 'Show gizmo',
     },
   },
+  overlay: {
+    hidden: {
+      type: 'switch',
+      value: false,
+      label: 'Hidden',
+    },
+  },
 };
 
 export default settings;

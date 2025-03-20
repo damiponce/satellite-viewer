@@ -4,6 +4,7 @@ import {
   TableBody,
   TableCell,
   TableHead,
+  TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -19,7 +20,7 @@ import {
   Satellite,
   Video,
 } from 'lucide-react';
-import { useReducer, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import TooltipWrapper from '../TooltipWrapper';
 import { Button } from '../ui/button';
@@ -35,6 +36,8 @@ import CameraSettingsPanel from './sections/CameraSettingsPanel';
 import SatelliteElementsPanel from './sections/SatelliteElementsPanel';
 import SatelliteListPanel from './sections/SatelliteListPanel';
 import TexturesPanel from './sections/TexturesPanel';
+import { update } from '@/lib/settings/settingsSlice';
+import { SatRec, twoline2satrec } from 'satellite.js';
 
 const Timeline = dynamic(() => import('./Timeline'), { ssr: false });
 
@@ -103,6 +106,45 @@ export default function Overlay({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
   const dispatch = useDispatch();
 
+  const [counts, setCounts] = useState({
+    leo: { count: 0, title: 'LEO' },
+    meo: { count: 0, title: 'MEO' },
+    geo: { count: 0, title: 'GEO' },
+    other: { count: 0, title: 'Other' },
+  });
+
+  useEffect(() => {
+    let c = counts;
+    Object.keys(c).forEach((key) => {
+      c[key].count = 0;
+    });
+
+    for (let sat of satellites) {
+      const { no, ecco: eccentricity } = twoline2satrec(
+        sat.tle_line1,
+        sat.tle_line2,
+      );
+
+      const meanMotion = (no * 60 * 24) / (2 * Math.PI); // rad/min -> rev/day
+
+      if (meanMotion > 11.25) {
+        c.leo.count++;
+      } else if (meanMotion > 2 && meanMotion <= 11.25) {
+        c.meo.count++;
+      } else if (
+        meanMotion >= 0.99 &&
+        meanMotion <= 1.01 &&
+        eccentricity < 0.1
+      ) {
+        c.geo.count++;
+      } else {
+        c.other.count++;
+      }
+
+      setCounts(c);
+    }
+  }, [satellites]);
+
   const infoSat = satellites.find((s) => s.object_id === selections.info.id);
 
   const [loaded, setLoaded] = useState(false);
@@ -150,15 +192,16 @@ export default function Overlay({ timer }: { timer: any }) {
                   }
                 }}
               >
-                <TooltipWrapper text='Satellite selection'>
+                <TooltipWrapper text='Satellite groups'>
                   <ToggleGroupItem
-                    value='satellite_selection'
-                    aria-label='Open satellite selection panel'
+                    id='onboarding-satellite-groups'
+                    value='satellite_groups'
+                    aria-label='Open satellite groups panel'
                   >
                     <Satellite className='h-5 w-5' />
                   </ToggleGroupItem>
                 </TooltipWrapper>
-                <TooltipWrapper text='Satellite elements'>
+                {/* <TooltipWrapper text='Satellite elements'>
                   <ToggleGroupItem
                     value='satellite_elements'
                     aria-label='Open satellite elements panel'
@@ -170,7 +213,7 @@ export default function Overlay({ timer }: { timer: any }) {
                   <ToggleGroupItem value='map' aria-label='Open map settings'>
                     <Map className='h-5 w-5' />
                   </ToggleGroupItem>
-                </TooltipWrapper>
+                </TooltipWrapper> */}
                 <TooltipWrapper text='Camera'>
                   <ToggleGroupItem
                     value='camera'
@@ -207,20 +250,21 @@ export default function Overlay({ timer }: { timer: any }) {
                 >
                   <div className='grid gap-4'>
                     <div className='space-y-2'>
-                      <h4 className='font-medium leading-none'>
+                      <h4 className='font-medium text-lg leading-none'>
                         {
                           {
-                            satellite_selection: 'Satellites',
+                            satellite_groups: 'Satellite groups',
                             satellite_elements: 'Satellite elements',
                             map: 'Map',
-                            camera: 'Camera',
+                            // camera: 'Camera',
+                            camera: 'View',
                           }[settingsPanel.lastPanel as string]
                         }
                       </h4>
                     </div>
                     {
                       {
-                        satellite_selection: <SatelliteListPanel />,
+                        satellite_groups: <SatelliteListPanel />,
                         satellite_elements: <SatelliteElementsPanel />,
                         map: <TexturesPanel />,
                         camera: <CameraSettingsPanel />,
@@ -233,6 +277,7 @@ export default function Overlay({ timer }: { timer: any }) {
             <div className='flex flex-col absolute top-2 right-[52px] pointer-events-auto'>
               <TooltipWrapper text='Show Info Panel'>
                 <Toggle
+                  id='onboarding-info-panel'
                   variant='outline_toggle'
                   className='aspect-square p-0 '
                   onClick={() => {
@@ -261,7 +306,34 @@ export default function Overlay({ timer }: { timer: any }) {
                 >
                   <div className='grid gap-4 max-w-[calc(100vw_-_50px)]'>
                     {/* WHY 50 PIXELS????? */}
-                    {selections.info.id === null ? (
+                    <div className='w-full'>
+                      <h2 className='font-medium text-lg leading-none text-center'>
+                        Satellite counts
+                      </h2>
+                      <Table>
+                        <TableBody>
+                          {Object.keys(counts).map((countType) => (
+                            <TableRow key={countType}>
+                              <TableHead className='font-medium text-center'>
+                                {counts[countType].title}
+                              </TableHead>
+                              <TableCell className='text-center'>
+                                {counts[countType].count}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow>
+                            <TableHead className='font-medium text-center'>
+                              Total
+                            </TableHead>
+                            <TableCell className='text-center'>
+                              {satellites.length}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {/* selections.info.id === null ? (
                       <div className='space-y-2 w-full'>
                         <h4 className='font-medium leading-none text-muted-foreground text-center'>
                           No satellite selected.
@@ -316,7 +388,7 @@ export default function Overlay({ timer }: { timer: any }) {
                           {infoSat?.tle_line2}
                         </code>
                       </>
-                    )}
+                    ) */}
                   </div>
                 </PopoverContent>
               </Popover>
@@ -325,20 +397,27 @@ export default function Overlay({ timer }: { timer: any }) {
         )}
 
         <div className='flex flex-col absolute top-2 right-2 pointer-events-auto'>
-          <TooltipWrapper text='Toggle UI'>
+          <TooltipWrapper text='Toggle the overlay'>
             <Button
+              id='onboarding-hide'
               variant='outline_toggle'
               className='aspect-square p-0 cursor-pointer'
               onClick={() => {
-                setIsTogglesVisible(!isTogglesVisible),
-                  dispatchSettingsPanel({
-                    type: 'set_is_open',
-                    payload: false,
+                dispatch(
+                  update({
+                    path: 'overlay.hidden',
+                    value: isTogglesVisible,
                   }),
-                  dispatchInfoPanel({
-                    type: 'set_is_open',
-                    payload: false,
-                  });
+                );
+                dispatchSettingsPanel({
+                  type: 'set_is_open',
+                  payload: false,
+                });
+                dispatchInfoPanel({
+                  type: 'set_is_open',
+                  payload: false,
+                });
+                setIsTogglesVisible(!isTogglesVisible);
               }}
             >
               {isTogglesVisible ? (

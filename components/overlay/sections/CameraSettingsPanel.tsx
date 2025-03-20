@@ -14,7 +14,7 @@ export default function CameraSettingsPanel() {
 
   return (
     <>
-      <RadioGroup
+      {/* <RadioGroup
         value={settings['camera'] as string}
         onValueChange={(value) =>
           dispatch(
@@ -41,8 +41,8 @@ export default function CameraSettingsPanel() {
             </TooltipWrapper>
           ),
         )}
-      </RadioGroup>
-      <h4 className='font-medium leading-none mt-4'>View</h4>
+      </RadioGroup> */}
+      {/* <h4 className='font-medium leading-none mt-4'>View</h4> */}
       {Object.entries(_settings.view as SettingsGroup).map(
         ([setting, data]) => (
           <TooltipWrapper key={`${setting}`} text={data.tooltip} side='right'>

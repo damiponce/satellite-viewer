@@ -39,18 +39,19 @@ export const LoadingProvider = ({ children }: { children: any }) => {
   return (
     <LoadingContext.Provider
       value={{
-        isLoading: pendingTasks.size > 0,
+        isLoading: pendingTasks.size > 0, //false
         addLoadingTask,
         completeLoadingTask,
       }}
     >
+      {/* {false && ( */}
       {pendingTasks.size > 0 && (
-        <div className='absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 text-white z-[10000]'>
+        <div className='absolute inset-0 bg-gradient-to-br from-zinc-800 to-zinc-900 text-white z-[500000]'>
           <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[2]'>
             <h2 className='text-6xl font-bold text-center'>SatView</h2>
-            <h3 className='text-xs font-mono text-center text-red-500/75 '>
+            {/* <h3 className='text-xs font-mono text-center text-red-500/75 '>
               [WORK IN PROGRESS]
-            </h3>
+            </h3> */}
           </div>
           <div
             className={cn(

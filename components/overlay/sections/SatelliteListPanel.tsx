@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { GroupType } from '@/lib/groups/group';
 import { addGroup, removeGroup, setGroup } from '@/lib/groups/groupSlice';
 import { loadJsonData } from '@/lib/idb/storage';
 import { RootState } from '@/lib/redux/store';
@@ -25,15 +26,15 @@ export default function SatelliteListPanel() {
   const [groupInput, setGroupInput] = React.useState<string>('');
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col gap-4 -mt-2'>
       <Tabs defaultValue='groups' className='min-w-[200px]'>
-        <TabsList className='grid w-full grid-cols-2 bg-muted/30 backdrop-blur-lg backdrop-brightness-150 '>
+        {/* <TabsList className='grid w-full grid-cols-2 bg-muted/30 backdrop-blur-lg backdrop-brightness-150 '>
           <TabsTrigger value='groups'>Groups</TabsTrigger>
           <TabsTrigger value='singles' disabled>
             Singles
           </TabsTrigger>
-        </TabsList>
-        <TabsContent value='singles'>
+        </TabsList> */}
+        {/* <TabsContent value='singles'>
           <div className='flex flex-row mb-4_'>
             <Input
               type='text'
@@ -50,7 +51,7 @@ export default function SatelliteListPanel() {
               <Plus className='h-5 w-5' />
             </Button>
           </div>
-        </TabsContent>
+        </TabsContent> */}
         <TabsContent value='groups'>
           <div className='flex flex-row mb-4_'>
             <Input
@@ -123,13 +124,19 @@ function SatGroupList() {
   const satellites = useSelector((state: RootState) => state.satellites);
   const groups = useSelector((state: RootState) => state.groups);
 
+  function getGroupCount(group: GroupType) {
+    return satellites.filter((sat) =>
+      sat.object_name.includes(group.name_filter),
+    ).length;
+  }
+
   return (
-    <div className='flex flex-col flex-nowrap pt-2 gap-0 max-h-[40vh] overflow-y-scroll'>
+    <div className='flex flex-col flex-nowrap pt-2 gap-0 max-h-[20vh] overflow-y-scroll scrollbar-custom'>
       {groups.length > 0 ? (
         groups.map((group) => (
           <div
             key={`sat-group-${group.name}`}
-            className='flex flex-row px-3 py-2 items-center cursor-pointer hover:bg-muted/50 rounded-md'
+            className='flex flex-row px-2 py-2 mr-2 items-center cursor-pointer hover:bg-muted/50 rounded-md'
             onClick={() => {
               dispatch(
                 setGroup({
@@ -140,9 +147,19 @@ function SatGroupList() {
             }}
           >
             <Checkbox className='h-5 w-5 ' checked={group.enabled} />
-            <Label className='font-medium mx-2 mr-6 w-full _flex _flex-row _items-center cursor-pointer'>
+            <Label className='font-medium mx-2 mr-6 w-full cursor-pointer'>
               {group.name}
+              <span className='font-normal text-xs h-full text-muted-foreground/65 text-right w-min ml-[5px] cursor-pointer'>
+                {'· '}
+                {getGroupCount(group)}
+              </span>
             </Label>
+            {/* <Label className='font-normal text-xs text-muted-foreground/75 text-right mx-2 w-min cursor-pointer'>
+              {getGroupCount(group)}
+            </Label> */}
+            {!group.deleteable && (
+              <div className='ml-1 h-5 aspect-square p-0' />
+            )}
             {group.deleteable && (
               <Button
                 variant='secondary'

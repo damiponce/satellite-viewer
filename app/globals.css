@@ -42,3 +42,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+.__floater__arrow > span > svg > polygon {
+  fill: hsl(var(--border));
+}
+
+.par_height > br {
+  content: '';
+  margin: 2em;
+  display: block;
+  font-size: 24%;
+}
+
+.br-h > br {
+  content: '';
+  margin: 1em;
+  display: block;
+  font-size: 24%;
+}
+
+.par_height > b {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #4444;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 10px;
+}

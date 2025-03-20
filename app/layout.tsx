@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+// import { Inter, } from 'next/font/google';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
-const inter = Inter({ subsets: ['latin'] });
+// const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'SatView 🛰️',
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
 
 function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang='en'>
+    <html lang='en' className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         {/* <script src='https://unpkg.com/react-scan/dist/auto.global.js' async /> */}
         <meta name='viewport' content='width=device-width, user-scalable=no' />
@@ -61,7 +63,7 @@ function RootLayout({ children }: { children: React.ReactNode }) {
         <meta name='apple-mobile-web-app-title' content='SatView' />
         <link rel='manifest' href='/favicon/site.webmanifest' />
       </head>
-      <body className={cn(inter.className, 'overflow-hidden relative')}>
+      <body id='app-container' className={cn('', 'overflow-hidden relative')}>
         {children}
       </body>
     </html>

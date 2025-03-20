@@ -21,6 +21,7 @@ export default function TimeHandler({
   timer: any;
 }) {
   const timeParams = useSelector((state: RootState) => state.time);
+  const settings = useSelector((state: RootState) => state.settings);
   const dispatch = useDispatch();
 
   const timeScaleTextRef = React.useRef<HTMLHeadingElement>(null);
@@ -46,78 +47,87 @@ export default function TimeHandler({
       zIndexRange={[1000, 1001]}
       className='relative w-full flex flex-row pointer-events-none *:pointer-events-auto'
     >
-      <div
-        onPointerDown={(e) => {
-          e.stopPropagation();
-        }}
-        onTouchStart={(e) => {
-          e.stopPropagation();
-        }}
-        onWheel={(e) => {
-          e.stopPropagation();
-        }}
-        className={cn(
-          className,
-          'absolute bottom-0 left-0 pointer-evens-auto aspect-square w-[150px] _bg-red-500/50 flex flex-col shrink-0 p-3 border-t-2 border-r-2 rounded-tr-lg [&>*]:my-1 bg-background/50 backdrop-blur-lg',
-          // '[&>*]:border-red-500 [&>*]:border-[1px] [&>*]:border-dashed',
-        )}
-      >
-        <div className='w-full _flex-1 _bg-blue-500/50 flex justify-center relative'>
-          <CustomSlider
-            defaultValue={[1]}
-            min={1}
-            max={100}
-            value={[timeParams.sliderTimeScale]}
-            onValueChange={(value) => {
-              dispatch(
-                setTimeScale({ timeScale: value[0], isFromSlider: true }),
-              );
-            }}
-          />
-        </div>
-        {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
-        {/* <TextInfoTwo
+      {!settings.overlay['hidden'] && (
+        <div
+          id='onboarding-time-handler'
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          onWheel={(e) => {
+            e.stopPropagation();
+          }}
+          className={cn(
+            className,
+            'absolute bottom-0 left-0 pointer-evens-auto aspect-square w-[150px] _bg-red-500/50 flex flex-col shrink-0 p-3 border-t-2 border-r-2 rounded-tr-lg [&>*]:my-1 bg-background/50 backdrop-blur-lg',
+            // '[&>*]:border-red-500 [&>*]:border-[1px] [&>*]:border-dashed',
+          )}
+        >
+          <div className='w-full _flex-1 _bg-blue-500/50 flex justify-center relative'>
+            <CustomSlider
+              defaultValue={[1]}
+              min={1}
+              max={100}
+              value={[timeParams.sliderTimeScale]}
+              onValueChange={(value) => {
+                dispatch(
+                  setTimeScale({ timeScale: value[0], isFromSlider: true }),
+                );
+              }}
+            />
+          </div>
+          {/* <TextInfo timeScale={timeParams.timeScale.toFixed(0)} timer={timer} /> */}
+          {/* <TextInfoTwo
         timeScale={timeParams.timeScale.toFixed(0)}
         date={moment(timer.current.now()).utc().format('ll')}
         time={moment(timer.current.now()).utc().format('HH:mm:ss')}
       /> */}
-        <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
-          <h2 ref={timeScaleTextRef} />
-          <h2 ref={dateTextRef} />
-          <h2 className='tabular-nums' ref={timeTextRef} />
+          <div className='_flex-[2_2_0%] flex flex-col items-center justify-center text-xs font-medium select-none'>
+            <h2 ref={timeScaleTextRef} />
+            <h2 ref={dateTextRef} />
+            <h2 className='tabular-nums' ref={timeTextRef} />
+          </div>
+          <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
+            <Button
+              variant='outline'
+              className='p-0 pl-[6px] pr-2 flex flex-row justify-center items-center gap-[5px]'
+              onClick={() => {
+                timer.current.config({ time: Date.now() });
+                dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
+              }}
+            >
+              {/* <TimerReset className='h-5 w-5' strokeWidth={1.5} /> */}
+              <TimerReset className='h-[18px] w-[18px]' strokeWidth={1.25} />
+              <span className=' font-extralight'>Now</span>
+            </Button>
+            <div className='grow' />
+            <Button
+              variant='outline'
+              className='aspect-square p-0'
+              onClick={() => {
+                dispatch(setPaused({ paused: !timeParams.paused }));
+              }}
+            >
+              {timeParams.paused ? (
+                <Play className='h-5 w-5' strokeWidth={1.5} />
+              ) : (
+                <Pause className='h-5 w-5' strokeWidth={1.5} />
+              )}
+            </Button>
+            {/* <Button
+              variant='outline'
+              className='aspect-square p-0'
+              onClick={() => {
+                dispatch(setPaused({ paused: false }));
+              }}
+            >
+              <Play className='h-5 w-5' strokeWidth={1.5} />
+            </Button> */}
+          </div>
         </div>
-        <div className='_flex-1 flex flex-row gap-1.5 [&>*]:h-8 justify-between'>
-          <Button
-            variant='outline'
-            className='aspect-square p-0'
-            onClick={() => {
-              timer.current.config({ time: Date.now() });
-              dispatch(setTimeScale({ timeScale: 1, isFromSlider: true }));
-            }}
-          >
-            <TimerReset className='h-5 w-5' strokeWidth={1.5} />
-          </Button>
-          <div className='grow' />
-          <Button
-            variant='outline'
-            className='aspect-square p-0'
-            onClick={() => {
-              dispatch(setPaused({ paused: true }));
-            }}
-          >
-            <Pause className='h-5 w-5' strokeWidth={1.5} />
-          </Button>
-          <Button
-            variant='outline'
-            className='aspect-square p-0'
-            onClick={() => {
-              dispatch(setPaused({ paused: false }));
-            }}
-          >
-            <Play className='h-5 w-5' strokeWidth={1.5} />
-          </Button>
-        </div>
-      </div>
+      )}
     </Html>
   );
 }

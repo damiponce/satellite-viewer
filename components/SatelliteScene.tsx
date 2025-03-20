@@ -17,11 +17,13 @@ import {
   emptySatellites,
 } from '@/lib/satellites/satelliteSlice';
 import { loadJsonData } from '@/lib/idb/storage';
+import { useLoading } from './LoadingScreen';
 
 export default function SatelliteScene({ timer }: { timer: any }) {
   const satellites = useSelector((state: RootState) => state.satellites);
   const groups = useSelector((state: RootState) => state.groups);
   const [satTles, setSatTles] = React.useState<string[]>([]);
+  const { completeLoadingTask } = useLoading();
 
   const dispatch = useDispatch();
   // console.warn('SAT_CANVAS', satellites);
